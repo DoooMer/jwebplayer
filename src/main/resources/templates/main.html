@@ -21,11 +21,31 @@
             margin: 0 10px;
         }
 
+        .frame li {
+            margin: 10px 0;
+        }
+
+        .frame li:first-child {
+            margin-top: 0;
+        }
+
+        .frame li:last-child {
+            margin-bottom: 0;
+        }
+
+        .frame a:hover {
+            color: teal;
+        }
+
         .scroll {
             flex: 0 1 100%;
             border: none;
             overflow-y: auto;
             overflow-style: marquee-line;
+        }
+
+        .active {
+            color: #F44336;
         }
     </style>
 </head>
@@ -88,7 +108,7 @@
                 <div class="frame">
                     <ul v-if="tracks.length" class="scroll">
                         <li v-for="track in tracks">
-                            <a href="#" @click.prevent="play(track.id)" :title="track.name">
+                            <a href="#" @click.prevent="play(track.id)" :title="track.name" :class="{'active': track.id === trackId}">
                                 <template v-if="track.id === trackId">
                                     <i class="material-icons tiny">play_arrow</i>&nbsp;
                                 </template>
@@ -123,6 +143,12 @@
                         <label for="muteInterval">Скорость выключения звука</label>
                         <span class="helper-text">мс</span>
                     </div>
+                </div>
+                <div class="col s12">
+                    <select>
+                        <option value="" selected>Все</option>
+                        <option v-for="unit in playlists" :value="unit.id">{{ unit.name }}</option>
+                    </select>
                 </div>
                 <div class="col s12">
                     <p>
