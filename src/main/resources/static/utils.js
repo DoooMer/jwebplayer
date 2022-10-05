@@ -172,6 +172,22 @@ class API {
         return axios.get('/api/playback/' + id);
     }
 
+    static playlists() {
+        return axios.get('/api/playlists');
+    }
+
+    static createPlaylist(name) {
+        return axios.post('/api/playlists', {"name": name});
+    }
+
+    static playlist(id) {
+        return axios.get('/api/playlists/' + id + '/tracks');
+    }
+
+    static addToPlaylist(trackId, playlistId) {
+        return axios.post('/api/playlists/' + id, {"trackId": trackId});
+    }
+
 }
 
 class MemeAPI {

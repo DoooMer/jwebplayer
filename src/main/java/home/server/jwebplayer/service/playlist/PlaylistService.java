@@ -1,72 +1,89 @@
 package home.server.jwebplayer.service.playlist;
 
+import home.server.jwebplayer.entity.Playlist;
+import home.server.jwebplayer.entity.PlaylistTrack;
 import home.server.jwebplayer.entity.Track;
+import home.server.jwebplayer.repository.PlaylistRepository;
+import home.server.jwebplayer.repository.PlaylistTrackRepository;
+import home.server.jwebplayer.repository.TrackRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.LinkedList;
+import java.util.List;
+import java.util.UUID;
 
 @Component
 public class PlaylistService
 {
-    private LinkedList<String> queue = new LinkedList<>();
+    private final static String DEFAULT_PLAYLIST_NAME = "default";
 
-    private Integer cursor = 0;
+    private final TrackRepository trackRepository;
 
-    public void setQueue(LinkedList<String> queue)
+    private final PlaylistRepository playlistRepository;
+
+    private final PlaylistTrackRepository playlistTrackRepository;
+
+    @Autowired
+    public PlaylistService(
+            TrackRepository trackRepository,
+            PlaylistRepository playlistRepository,
+            PlaylistTrackRepository playlistTrackRepository
+    )
     {
-        this.queue = queue;
+        this.trackRepository = trackRepository;
+        this.playlistRepository = playlistRepository;
+        this.playlistTrackRepository = playlistTrackRepository;
     }
 
-    public void add(Track track)
+    public void generateDefault()
     {
-        queue.add(track.getId());
+        var playlist = findDefaultPlaylist();
+        var playlistTracks = playlistTrackRepository.findAllByPlaylistId(playlist.getId());
+
+        for (Track track : trackRepository.findAll()) {
+            playlistTracks.stream()
+                    .filter(playlistTrack -> playlistTrack.getTrack().equals(track))
+                    .findFirst()
+                    .orElseGet(() -> {
+                        var newPlaylistTrack = new PlaylistTrack();
+                        newPlaylistTrack.setPlaylist(playlist);
+                        newPlaylistTrack.setTrack(track);
+
+                        playlistTracks.add(newPlaylistTrack);
+
+                        return newPlaylistTrack;
+                    });
+        }
+
+        playlistTrackRepository.saveAll(playlistTracks);
     }
 
-    public String current()
+    public Playlist getById(UUID id)
     {
-        return queue.size() > 0 ? queue.get(cursor) : null;
+        return playlistRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Playlist is not exists"));
     }
 
-    public void select(String id) throws Exception
+    public Playlist getDefault()
     {
-        int index = queue.indexOf(id);
-
-        if (index < 0) {
-            // TODO: custom exception and cursor+1
-            throw new Exception("Track " + id + " not found.");
-        }
-
-        cursor = index;
+        return playlistRepository.findByName(DEFAULT_PLAYLIST_NAME)
+                .orElseThrow(() -> new RuntimeException("Default playlist not generated yet"));
     }
 
-    public void next()
+    public List<PlaylistTrack> getTracks(Playlist playlist)
     {
-        int size = queue.size();
-
-        if (size < 1) {
-            cursor = 0;
-            return;
-        }
-
-        cursor++;
-
-        if (cursor >= size) {
-            cursor = 0;
-        }
+        return playlistTrackRepository.findAllByPlaylistId(playlist.getId());
     }
 
-    public void delete(Track track)
+    private Playlist findDefaultPlaylist()
     {
-        int index = queue.indexOf(track.getId());
+        return playlistRepository.findByName(DEFAULT_PLAYLIST_NAME).orElseGet(() -> {
+            var newPlaylist = new Playlist();
+            newPlaylist.setName(DEFAULT_PLAYLIST_NAME);
 
-        if (index < 0) {
-            return;
-        }
+            playlistRepository.save(newPlaylist);
 
-        if (index <= cursor) {
-            cursor--;
-        }
-
-        queue.remove(index);
+            return newPlaylist;
+        });
     }
 }

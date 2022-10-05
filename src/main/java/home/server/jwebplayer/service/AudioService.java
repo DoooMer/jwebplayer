@@ -3,7 +3,7 @@ package home.server.jwebplayer.service;
 import home.server.jwebplayer.dto.DownloadedTrackDto;
 import home.server.jwebplayer.entity.Track;
 import home.server.jwebplayer.repository.TrackRepository;
-import home.server.jwebplayer.service.playlist.PlaylistService;
+import home.server.jwebplayer.service.playlist.PlaylistPlaybackService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,7 +22,7 @@ import java.util.Optional;
 @Slf4j
 public class AudioService
 {
-    private final PlaylistService playlistService;
+    private final PlaylistPlaybackService playlistService;
 
     private final TrackRepository trackRepository;
 
@@ -31,7 +31,7 @@ public class AudioService
 
     @Autowired
     public AudioService(
-            PlaylistService playlistService,
+            PlaylistPlaybackService playlistService,
             TrackRepository trackRepository
     )
     {

@@ -88,6 +88,8 @@ const app = new Vue({
         search: null,
         // playlist filtered by search (if set)
         tracks: [],
+        // saved playlists
+        playlists: [],
     },
     created() {
         // load saved state
@@ -108,7 +110,13 @@ const app = new Vue({
             .catch(console.error)
             .finally(() => {
                 this.loadingTrack = false;
+            });
+
+        API.playlists()
+            .then(response => {
+                this.playlists = response.data.playlists;
             })
+            .catch(console.error);
 
         // load playlist if enabled
         if (this.showPlaylist) {

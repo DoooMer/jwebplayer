@@ -2,6 +2,7 @@ package home.server.jwebplayer.service.watch;
 
 import home.server.jwebplayer.entity.Track;
 import home.server.jwebplayer.repository.TrackRepository;
+import home.server.jwebplayer.service.playlist.PlaylistPlaybackService;
 import home.server.jwebplayer.service.playlist.PlaylistService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +24,9 @@ import java.util.UUID;
 @Slf4j
 public class AudioScanner implements Runnable
 {
-    private final PlaylistService playlistService;
+    private final PlaylistPlaybackService playlistService;
+
+    private final PlaylistService playlist;
 
     private final TrackRepository trackRepository;
 
@@ -32,11 +35,13 @@ public class AudioScanner implements Runnable
 
     @Autowired
     public AudioScanner(
-            PlaylistService playlistService,
+            PlaylistPlaybackService playlistService,
+            PlaylistService playlist,
             TrackRepository trackRepository
     )
     {
         this.playlistService = playlistService;
+        this.playlist = playlist;
         this.trackRepository = trackRepository;
     }
 
@@ -117,14 +122,7 @@ public class AudioScanner implements Runnable
 
     private void generatePlaylist()
     {
-        LinkedList<String> tracksIds = new LinkedList<>();
-
-        for (Track track : trackRepository.findAll()) {
-            tracksIds.add(track.getId());
-        }
-
-        playlistService.setQueue(tracksIds);
-
-        log.info("Playlist generated");
+        playlist.generateDefault();
+        log.info("Default playlist generated");
     }
 }

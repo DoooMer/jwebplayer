@@ -5,6 +5,7 @@ import home.server.jwebplayer.entity.PlaylistTrack;
 import home.server.jwebplayer.repository.PlaylistRepository;
 import home.server.jwebplayer.repository.PlaylistTrackRepository;
 import home.server.jwebplayer.repository.TrackRepository;
+import home.server.jwebplayer.service.playlist.UserPlaylistService;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,16 +28,20 @@ public class ApiPlaylistController
 
     private final TrackRepository trackRepository;
 
+    private final UserPlaylistService userPlaylistService;
+
     @Autowired
     public ApiPlaylistController(
             PlaylistRepository playlistRepository,
             PlaylistTrackRepository playlistTrackRepository,
-            TrackRepository trackRepository
+            TrackRepository trackRepository,
+            UserPlaylistService userPlaylistService
     )
     {
         this.playlistRepository = playlistRepository;
         this.playlistTrackRepository = playlistTrackRepository;
         this.trackRepository = trackRepository;
+        this.userPlaylistService = userPlaylistService;
     }
 
     @GetMapping("/api/playlists")
@@ -96,6 +101,21 @@ public class ApiPlaylistController
                 .toList();
 
         return ResponseEntity.ok(new ApiListTracksDTO(list));
+    }
+
+    @PostMapping("/api/playlist/{playlistId}/select")
+    public ResponseEntity<?> select(@PathVariable UUID playlistId)
+    {
+        var playlist = playlistRepository.findById(playlistId);
+
+        if (playlist.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        userPlaylistService.select(playlist.get());
+
+        // TODO mark playlist as selected
+        return ResponseEntity.ok().build();
     }
 
     private ApiPlaylistDTO transformPlaylistToDto(Playlist playlist)
