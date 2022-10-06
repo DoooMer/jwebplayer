@@ -144,16 +144,32 @@
                         <span class="helper-text">мс</span>
                     </div>
                 </div>
-                <div class="col s12">
-                    <select>
-                        <option value="" selected>Все</option>
-                        <option v-for="unit in playlists" :value="unit.id">{{ unit.name }}</option>
-                    </select>
+                <div class="col s12" v-show="playlists.length > 0">
+                    <div class="input-field">
+                        <select id="playlist-selector">
+                            <option v-for="unit in playlists" :value="unit.id">{{ unit.name }}</option>
+                        </select>
+                        <label for="playlist-selector">Плейлисты</label>
+                    </div>
                 </div>
                 <div class="col s12">
                     <p>
                         <a th:href="@{/controls}" target="_blank">Управление</a>
                     </p>
+                </div>
+            </div>
+        </div>
+        <div class="col s3">
+            <button data-target="playlist-new" class="btn btn-block modal-trigger">Новый плейлист</button>
+            <div id="playlist-new" class="modal">
+                <div class="modal-content">
+                    <h4>Новый плейлист</h4>
+                    <label>
+                        <input type="text" v-model="playlistNew" placeholder="Название"/>
+                    </label>
+                </div>
+                <div class="modal-footer">
+                    <button class="modal-close waves-effect waves-green" @click="playlistCreate">Добавить</button>
                 </div>
             </div>
         </div>

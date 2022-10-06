@@ -8,13 +8,11 @@ import home.server.jwebplayer.repository.TrackRepository;
 import home.server.jwebplayer.service.playlist.UserPlaylistService;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -57,10 +55,10 @@ public class ApiPlaylistController
     }
 
     @PostMapping("/api/playlists")
-    public ResponseEntity<ApiPlaylistDTO> create(@RequestParam String name)
+    public ResponseEntity<ApiPlaylistDTO> create(@RequestBody CreatePlaylist createPlaylist)
     {
         var playlist = new Playlist();
-        playlist.setName(name);
+        playlist.setName(createPlaylist.getName());
 
         playlistRepository.save(playlist);
 
@@ -116,6 +114,14 @@ public class ApiPlaylistController
 
         // TODO mark playlist as selected
         return ResponseEntity.ok().build();
+    }
+
+    @AllArgsConstructor
+    @NoArgsConstructor
+    private static class CreatePlaylist
+    {
+        @Getter
+        private String name;
     }
 
     private ApiPlaylistDTO transformPlaylistToDto(Playlist playlist)

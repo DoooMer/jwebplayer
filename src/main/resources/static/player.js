@@ -90,6 +90,8 @@ const app = new Vue({
         tracks: [],
         // saved playlists
         playlists: [],
+        playlistNew: null, // name for new playlist
+        playlistNewModal: null // instance modal
     },
     created() {
         // load saved state
@@ -111,12 +113,6 @@ const app = new Vue({
             .finally(() => {
                 this.loadingTrack = false;
             });
-
-        API.playlists()
-            .then(response => {
-                this.playlists = response.data.playlists;
-            })
-            .catch(console.error);
 
         // load playlist if enabled
         if (this.showPlaylist) {
@@ -168,6 +164,19 @@ const app = new Vue({
                     break;
             }
         })
+    },
+    mounted() {
+        // init modal
+        this.playlistNewModal = M.Modal.init(document.getElementById('playlist-new'));
+
+        API.playlists()
+            .then(response => {
+                this.playlists = response.data.playlists;
+            })
+            .catch(console.error)
+            .finally(() => {
+                M.FormSelect.init(document.getElementById('playlist-selector'));
+            });
     },
     watch: {
         showPlaylist: function (newValue) {
@@ -401,6 +410,26 @@ const app = new Vue({
         },
         syncVolume(e) {
             signals.pushVolumeState(e.target.volume);
+        },
+        // create a new playlist
+        playlistCreate() {
+            API.createPlaylist(this.playlistNew)
+                .then(() => {
+                    this.playlistNew = null;
+                    this.playlistNewModal.close();
+                })
+                .catch(console.error)
+                .finally(() => {
+                    // load update list
+                    API.playlists()
+                        .then(response => {
+                            this.playlists = response.data.playlists;
+                        })
+                        .catch(console.error)
+                        .finally(() => {
+                            M.FormSelect.init(document.getElementById('playlist-selector'));
+                        });
+                });
         },
     }
 });
