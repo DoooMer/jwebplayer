@@ -91,7 +91,10 @@ const app = new Vue({
         // saved playlists
         playlists: [],
         playlistNew: null, // name for new playlist
-        playlistNewModal: null // instance modal
+        playlistNewModal: null, // instance modal
+        // adding track to playlist
+        playlistSelectedTrack: null, // which track selected
+        playlistSelectedToAddTrack: null // which playlist selected
     },
     created() {
         // load saved state
@@ -168,6 +171,7 @@ const app = new Vue({
     mounted() {
         // init modal
         this.playlistNewModal = M.Modal.init(document.getElementById('playlist-new'));
+        M.Modal.init(document.getElementById('playlist-add-track'));
 
         API.playlists()
             .then(response => {
@@ -176,6 +180,7 @@ const app = new Vue({
             .catch(console.error)
             .finally(() => {
                 M.FormSelect.init(document.getElementById('playlist-selector'));
+                M.FormSelect.init(document.getElementById('playlist-add-track-selector'));
             });
     },
     watch: {
@@ -417,6 +422,7 @@ const app = new Vue({
                 .then(() => {
                     this.playlistNew = null;
                     this.playlistNewModal.close();
+                    M.toast({html: 'Плейлист создан'});
                 })
                 .catch(console.error)
                 .finally(() => {
@@ -428,7 +434,35 @@ const app = new Vue({
                         .catch(console.error)
                         .finally(() => {
                             M.FormSelect.init(document.getElementById('playlist-selector'));
+                            M.FormSelect.init(document.getElementById('playlist-add-track-selector'));
                         });
+                });
+        },
+        // add track to playlist
+        addToPlaylist(trackId) {
+            // console.log(trackId);
+            this.playlistSelectedTrack = trackId;
+            this.playlistSelectedToAddTrack = null;
+            M.FormSelect.init(document.getElementById('playlist-add-track-selector'));
+        },
+        addTrackToPlaylist() {
+
+            if (this.playlistSelectedTrack === null || this.playlistSelectedToAddTrack === null) {
+                console.log('track or playlist not selected');
+                M.toast({html: 'Ошибка добавления в плейлист: трек или плейлист не выбан'});
+                return;
+            }
+
+            console.log('add track ' + this.playlistSelectedTrack + ' to playlist ' + this.playlistSelectedToAddTrack);
+            API.addToPlaylist(this.playlistSelectedTrack, this.playlistSelectedToAddTrack)
+                .then(() => {
+                    console.log('track added to playlist');
+                    M.toast({html: 'Трек добавлен в плейлист'});
+                })
+                .catch(console.error)
+                .finally(() => {
+                    this.playlistSelectedTrack = null;
+                    this.playlistSelectedToAddTrack = null;
                 });
         },
     }

@@ -28,7 +28,6 @@ public class PlaylistTrack
     @ManyToOne
     @Getter
     @Setter
-    @JoinColumn(name = "track_id", unique = true)
     private Track track;
 
     @PrePersist

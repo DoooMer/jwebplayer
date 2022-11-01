@@ -66,7 +66,7 @@ public class ApiPlaylistController
     }
 
     @PostMapping("/api/playlists/{playlistId}")
-    public ResponseEntity<?> addTrack(@PathVariable UUID playlistId, @RequestParam String trackId)
+    public ResponseEntity<?> addTrack(@PathVariable UUID playlistId, @RequestBody PlaylistAddTrack playlistAddTrack)
     {
         var playlist = playlistRepository.findById(playlistId);
 
@@ -74,7 +74,7 @@ public class ApiPlaylistController
             return ResponseEntity.badRequest().body("Unknown playlist.");
         }
 
-        var track = trackRepository.findById(trackId);
+        var track = trackRepository.findById(playlistAddTrack.getTrackId().toString());
 
         if (track.isEmpty()) {
             return ResponseEntity.badRequest().body("Unknown track.");
@@ -122,6 +122,14 @@ public class ApiPlaylistController
     {
         @Getter
         private String name;
+    }
+
+    @AllArgsConstructor
+    @NoArgsConstructor
+    private static class PlaylistAddTrack
+    {
+        @Getter
+        private UUID trackId;
     }
 
     private ApiPlaylistDTO transformPlaylistToDto(Playlist playlist)

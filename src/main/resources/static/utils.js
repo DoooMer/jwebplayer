@@ -185,7 +185,7 @@ class API {
     }
 
     static addToPlaylist(trackId, playlistId) {
-        return axios.post('/api/playlists/' + id, {"trackId": trackId});
+        return axios.post('/api/playlists/' + playlistId, {"trackId": trackId});
     }
 
 }
