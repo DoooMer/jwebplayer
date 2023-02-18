@@ -55,7 +55,7 @@
         }
 
         .frame li:hover {
-            background-color: #e0e0e0;
+            background-color: #e0f2f1;
         }
 
         .scroll {
@@ -105,12 +105,15 @@
                     class="btn-flat" title="Настройки">
                 <i class="material-icons">settings</i>
             </button>
-            <button @click.prevent="" class="btn-flat" disabled title="Вход">
+            <a th:href="@{/login}" class="btn-flat" title="Вход" th:if="!username">
+                <i class="material-icons">face</i>
+            </a>
+            <button class="btn-flat" th:title="${username}" th:if="username">
                 <i class="material-icons">face</i>
             </button>
-            <button @click.prevent="meme" class="btn-flat" title="Вкл мемы">
-                <i class="material-icons">attachment</i>
-            </button>
+<!--            <button @click.prevent="meme" class="btn-flat" title="Вкл мемы">-->
+<!--                <i class="material-icons">attachment</i>-->
+<!--            </button>-->
         </div>
     </div>
     <div class="row" v-show="!loading" style="display: none;">
@@ -152,7 +155,7 @@
                             <select id="playlist-add-track-selector" v-model="playlistSelectedToAddTrack">
                                 <option v-for="unit in playlists" :value="unit.id">{{ unit.name }}</option>
                             </select>
-                            <label for="playlist-add-track-selector">Плейлисты</label>
+                            <label for="playlist-add-track-selector">Плейлист</label>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -162,6 +165,7 @@
             </template>
         </div>
         <div class="col s3" v-show="showSettings">
+            <div th:text="${username}"></div>
             <div class="row">
                 <div class="col s12">
                     <p>

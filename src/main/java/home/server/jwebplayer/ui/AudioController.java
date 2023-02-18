@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.security.Principal;
 
 @Controller
 public class AudioController
@@ -28,10 +29,16 @@ public class AudioController
     }
 
     @GetMapping("/")
-    public String main(Model model) throws UnsupportedEncodingException
+    public String main(Model model, Principal principal) throws UnsupportedEncodingException
     {
         model.addAttribute("tracks", audioService.getAllTracks());
         model.addAttribute("total", audioService.getAllTracks().size());
+
+        if (principal != null) {
+            model.addAttribute("username", principal.getName());
+        } else {
+            model.addAttribute("username", null);
+        }
 
         return "main";
     }
