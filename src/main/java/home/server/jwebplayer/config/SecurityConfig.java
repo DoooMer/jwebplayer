@@ -31,11 +31,12 @@ public class SecurityConfig
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception
     {
         http.authorizeRequests(
-                        (requests) -> requests.antMatchers("/**").permitAll()
+                        (requests) -> requests.antMatchers("/**", "/api/**").permitAll()
                                 .anyRequest().authenticated()
                 )
                 .formLogin((form) -> form.loginPage("/login").permitAll())
-                .logout(LogoutConfigurer::permitAll);
+                .logout(LogoutConfigurer::permitAll)
+                .csrf().ignoringAntMatchers("/api/**");
 
         return http.build();
     }

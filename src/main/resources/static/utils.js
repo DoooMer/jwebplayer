@@ -100,14 +100,6 @@ class Settings {
         localStorage.setItem(Settings.SHOW_PLAYLIST, JSON.stringify(value));
     }
 
-    getShowSettings() {
-        return JSON.parse(localStorage.getItem(Settings.SHOW_SETTINGS) || 'false');
-    }
-
-    setShowSettings(value) {
-        localStorage.setItem(Settings.SHOW_SETTINGS, JSON.stringify(value));
-    }
-
     getShowMeme() {
         return JSON.parse(localStorage.getItem(Settings.SHOW_MEME) || 'false');
     }
@@ -209,32 +201,5 @@ class CtrlEvent {
     static PLAYSTATE = 'playState';
     static VOLUMESTATE = 'volumeState';
     static DATASYNCALL = 'dataSyncAll';
-
-}
-
-class MemesProvider {
-
-    timer;
-
-    run(callback, timeout = 5000) {
-        MemeAPI.random()
-            .then(response => {
-                callback(response.data);
-            })
-            .catch(console.error);
-        this.timer = setInterval(function () {
-            MemeAPI.random()
-                .then(response => {
-                    callback(response.data);
-                })
-                .catch(console.error);
-        }, timeout);
-    }
-
-    stop() {
-        if (this.timer) {
-            clearInterval(this.timer);
-        }
-    }
 
 }
