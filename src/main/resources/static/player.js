@@ -400,13 +400,22 @@ const app = new Vue({
             API.addToPlaylist(this.playlistSelectedTrack, this.playlistSelectedToAddTrack)
                 .then(() => {
                     console.log('track added to playlist');
-                    M.toast({html: 'Трек добавлен в плейлист'});
+                    const playlist = this.playlists.filter(playlist => playlist.id.includes(this.playlistSelectedToAddTrack)).pop();
+                    M.toast({html: 'Трек добавлен в плейлист "' + playlist.name + '"'});
                 })
                 .catch(console.error)
                 .finally(() => {
                     this.playlistSelectedTrack = null;
                     this.playlistSelectedToAddTrack = null;
                 });
+        },
+        selectPlaylist(playlistId) {
+            API.playlist(playlistId)
+                .then(response => {
+                    this.tracksTotal = response.data.total;
+                    this.tracks = this.playlist = response.data.playlistTracks || [];
+                })
+                .catch(console.error);
         },
     }
 });

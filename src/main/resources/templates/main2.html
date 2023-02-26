@@ -33,14 +33,17 @@
             display: block;
             padding: 10px;
         }
+
         .frame section {
             position: relative;
         }
+
         .frame section .track-title {
             margin-right: 50px;
             padding: 10px;
             cursor: pointer;
         }
+
         .frame section .track-actions {
             display: none;
             margin-left: 5px;
@@ -50,6 +53,7 @@
             top: 9px;
             cursor: pointer;
         }
+
         .frame li:hover .track-actions {
             display: inline-block;
         }
@@ -72,6 +76,7 @@
         .btn-block {
             width: 100%;
         }
+
         .btn.hover-teal:hover {
             background-color: #e0f2f1;
         }
@@ -80,7 +85,13 @@
 <body>
 <div class="container" id="app">
     <div class="row" v-if="loading">
-        Загрузка...
+        <div class="col s4 offset-s4">
+            <div class="row">
+                <div class="col s12 center-align" style="margin-top: 50px;">
+                    <p style="text-transform: uppercase;">Загрузка...</p>
+                </div>
+            </div>
+        </div>
     </div>
     <div class="row" v-show="!loading" style="display: none;">
         <div class="col s12">
@@ -102,12 +113,12 @@
                     title="Режим повтора">
                 <i class="material-icons">repeat</i>
             </button>
-<!--            <button @click.prevent="fade" :disabled="isFade" class="btn-flat" title="Плавное отключение звука">-->
-<!--                <i class="material-icons">volume_off</i>-->
-<!--            </button>-->
-<!--            <button @click.prevent="dnd" class="btn-flat" title="Не беспокоить">-->
-<!--                <i class="material-icons">{{ !showTitle && !showPlaylist ? 'do_not_disturb_off' : 'do_not_disturb_on' }}</i>-->
-<!--            </button>-->
+            <!--            <button @click.prevent="fade" :disabled="isFade" class="btn-flat" title="Плавное отключение звука">-->
+            <!--                <i class="material-icons">volume_off</i>-->
+            <!--            </button>-->
+            <!--            <button @click.prevent="dnd" class="btn-flat" title="Не беспокоить">-->
+            <!--                <i class="material-icons">{{ !showTitle && !showPlaylist ? 'do_not_disturb_off' : 'do_not_disturb_on' }}</i>-->
+            <!--            </button>-->
             <a class="waves-effect waves-light btn-flat modal-trigger" title="Настройки" href="#settings">
                 <i class="material-icons">settings</i>
             </a>
@@ -115,7 +126,7 @@
                 <i class="material-icons left">face</i> войти
             </a>
             <div sec:authorize="isAuthenticated()" style="display: inline-block;">
-                <button class="btn-flat center" th:title="${#authentication.principal.username}">
+                <button class="btn-flat center" disabled th:title="${#authentication.principal.username}">
                     <i class="material-icons left">face</i> [[${#authentication.principal.username}]]
                 </button>
             </div>
@@ -141,7 +152,8 @@
                         </div>
                         <div class="col s2">
                             <div class="input-field">
-                                <input type="number" min="200" max="1500" step="100" v-model="muteInterval" id="muteInterval"/>
+                                <input type="number" min="200" max="1500" step="100" v-model="muteInterval"
+                                       id="muteInterval"/>
                                 <label for="muteInterval">Скорость выключения звука</label>
                                 <span class="helper-text">мс</span>
                             </div>
@@ -155,9 +167,9 @@
                         </div>
                     </div>
                 </div>
-<!--                <div class="modal-footer">-->
-<!--                    <a href="#!" class="modal-close waves-effect waves-green btn-flat">Agree</a>-->
-<!--                </div>-->
+                <!--                <div class="modal-footer">-->
+                <!--                    <a href="#!" class="modal-close waves-effect waves-green btn-flat">Agree</a>-->
+                <!--                </div>-->
             </div>
         </div>
     </div>
@@ -179,12 +191,15 @@
                         </label>
                     </div>
                     <div class="modal-footer">
-                        <button class="modal-close waves-effect waves-green btn" @click="playlistCreate">Добавить</button>
+                        <button class="modal-close waves-effect waves-green btn" @click="playlistCreate">Добавить
+                        </button>
                     </div>
                 </div>
             </div>
             <div v-for="unit in playlists">
-                <button class="btn btn-block btn-flat waves-effect waves-teal hover-teal truncate" :title="unit.name">{{ unit.name }}</button>
+                <button class="btn btn-block btn-flat waves-effect waves-teal hover-teal truncate" :title="unit.name"
+                        @click.prevent="selectPlaylist(unit.id)">{{ unit.name }}
+                </button>
             </div>
         </div>
         <div class="col s9">
@@ -194,14 +209,16 @@
                     <ul v-if="tracks.length" class="scroll">
                         <li v-for="track in tracks">
                             <section>
-                                <div class="track-title" style="" @click.prevent="play(track.id)" :title="track.name" :class="{'active': track.id === trackId}">
+                                <div class="track-title" style="" @click.prevent="play(track.id)" :title="track.name"
+                                     :class="{'active': track.id === trackId}">
                                     <template v-if="track.id === trackId">
                                         <i class="material-icons tiny">play_arrow</i>&nbsp;
                                     </template>
                                     {{ track.name }}
                                 </div>
                                 <div class="track-actions" style="">
-                                    <span class="playlist-button right modal-trigger" title="Добавить в плейлист" data-target="playlist-add-track" @click.prevent="addToPlaylist(track.id)">
+                                    <span class="playlist-button right modal-trigger" title="Добавить в плейлист"
+                                          data-target="playlist-add-track" @click.prevent="addToPlaylist(track.id)">
                                         <i class="material-icons">add</i>
                                     </span>
                                 </div>
@@ -220,7 +237,8 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button class="modal-close waves-effect waves-green btn" @click="addTrackToPlaylist">Добавить</button>
+                        <button class="modal-close waves-effect waves-green btn" @click="addTrackToPlaylist">Добавить
+                        </button>
                     </div>
                 </div>
             </template>

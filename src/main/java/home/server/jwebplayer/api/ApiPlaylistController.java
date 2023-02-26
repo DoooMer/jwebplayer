@@ -183,9 +183,19 @@ public class ApiPlaylistController
             return playlistTrack.getPlaylist().getId();
         }
 
-        public String getTrackId()
+        public String getId()
         {
             return playlistTrack.getTrack().getId();
+        }
+
+        public String getName()
+        {
+            return playlistTrack.getTrack().getName();
+        }
+
+        public String getDownloadUrl()
+        {
+            return "/download/" + playlistTrack.getTrack().getId();
         }
     }
 
