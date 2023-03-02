@@ -47,6 +47,11 @@ function volumeChange(volume) {
     player.volume = volume;
 }
 
+function scrollPlaylistIntoActiveItem() {
+    const playlistContainer = document.querySelector('#playlist');
+    playlistContainer.querySelector('.active').scrollIntoView();
+}
+
 const WINDOW_TITLE = document.title;
 const signals = new Signals();
 const settings = new Settings();
@@ -169,6 +174,8 @@ const app = new Vue({
                 M.FormSelect.init(document.getElementById('playlist-selector'));
                 M.FormSelect.init(document.getElementById('playlist-add-track-selector'));
             });
+
+        scrollPlaylistIntoActiveItem();
     },
     watch: {
         showPlaylist: function (newValue) {
@@ -227,6 +234,7 @@ const app = new Vue({
                     this.trackUrl = response.data.downloadUrl;
                     this.trackName = response.data.name;
                     this.trackId = response.data.id;
+                    scrollPlaylistIntoActiveItem();
                 })
                 .catch(e => {
                     console.error(e);
@@ -410,12 +418,23 @@ const app = new Vue({
                 });
         },
         selectPlaylist(playlistId) {
-            API.playlist(playlistId)
-                .then(response => {
-                    this.tracksTotal = response.data.total;
-                    this.tracks = this.playlist = response.data.playlistTracks || [];
+            API.selectPlaylist(playlistId)
+                .then(() => {
+                    API.playlist(playlistId)
+                        .then(response => {
+                            this.tracksTotal = response.data.total;
+                            this.tracks = this.playlist = response.data.playlistTracks || [];
+                        })
+                        .catch(e => {
+                            console.error(e);
+                            M.toast({html: 'Не удалось загрузить список треков для плейлиста'});
+                        });
                 })
-                .catch(console.error);
+                .catch(e => {
+                    console.error(e);
+                    M.toast({html: 'Ошибка переключения плейлиста'});
+                });
+
         },
     }
 });

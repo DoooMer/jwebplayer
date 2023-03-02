@@ -206,7 +206,7 @@
             <template v-if="showPlaylist">
                 <p>Всего: {{ tracksTotal }}</p>
                 <div class="frame">
-                    <ul v-if="tracks.length" class="scroll">
+                    <ul v-if="tracks.length" class="scroll" id="playlist">
                         <li v-for="track in tracks">
                             <section>
                                 <div class="track-title" style="" @click.prevent="play(track.id)" :title="track.name"

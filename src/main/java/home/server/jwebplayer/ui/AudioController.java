@@ -2,7 +2,6 @@ package home.server.jwebplayer.ui;
 
 import home.server.jwebplayer.entity.Track;
 import home.server.jwebplayer.service.AudioService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -21,7 +20,6 @@ public class AudioController
 {
     private final AudioService audioService;
 
-    @Autowired
     public AudioController(AudioService audioService)
     {
         this.audioService = audioService;
@@ -37,6 +35,7 @@ public class AudioController
     }
 
     @GetMapping("/controls")
+    @Deprecated
     public String controls()
     {
         return "controls";

@@ -176,6 +176,10 @@ class API {
         return axios.get('/api/playlists/' + id + '/tracks');
     }
 
+    static selectPlaylist(id) {
+        return axios.post('/api/playlists/' + id + '/select');
+    }
+
     static addToPlaylist(trackId, playlistId) {
         return axios.post('/api/playlists/' + playlistId, {"trackId": trackId});
     }
