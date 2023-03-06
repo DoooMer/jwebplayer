@@ -1,6 +1,7 @@
 package home.server.jwebplayer.service.user;
 
 import home.server.jwebplayer.entity.Role;
+import home.server.jwebplayer.entity.User;
 import home.server.jwebplayer.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -52,6 +53,11 @@ public class UserService implements UserDetailsService
                 .password(user.getPassword())
                 .authorities(authorities(user.getRoles()))
                 .build();
+    }
+
+    public User getByUsername(String username)
+    {
+        return userRepository.findByUsername(username).orElse(null);
     }
 
     private Collection<GrantedAuthority> authorities(Collection<Role> roles)

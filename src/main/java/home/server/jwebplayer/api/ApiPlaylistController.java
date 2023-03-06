@@ -5,14 +5,18 @@ import home.server.jwebplayer.entity.PlaylistTrack;
 import home.server.jwebplayer.repository.PlaylistRepository;
 import home.server.jwebplayer.repository.PlaylistTrackRepository;
 import home.server.jwebplayer.repository.TrackRepository;
-import home.server.jwebplayer.service.playlist.UserPlaylistService;
+import home.server.jwebplayer.service.playback.PlaybackService;
+import home.server.jwebplayer.service.user.UserGuestService;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 import java.util.UUID;
@@ -21,30 +25,34 @@ import java.util.UUID;
 public class ApiPlaylistController
 {
     private final PlaylistRepository playlistRepository;
-
     private final PlaylistTrackRepository playlistTrackRepository;
-
     private final TrackRepository trackRepository;
-
-    private final UserPlaylistService userPlaylistService;
+    private final PlaybackService playbackService;
+    private final UserGuestService guestService;
 
     @Autowired
     public ApiPlaylistController(
             PlaylistRepository playlistRepository,
             PlaylistTrackRepository playlistTrackRepository,
             TrackRepository trackRepository,
-            UserPlaylistService userPlaylistService
+            PlaybackService playbackService,
+            UserGuestService guestService
     )
     {
         this.playlistRepository = playlistRepository;
         this.playlistTrackRepository = playlistTrackRepository;
         this.trackRepository = trackRepository;
-        this.userPlaylistService = userPlaylistService;
+        this.playbackService = playbackService;
+        this.guestService = guestService;
     }
 
+    /**
+     * Список плейлистов.
+     */
     @GetMapping("/api/playlists")
     public ResponseEntity<ListDTO> index()
     {
+        // TODO персонализировать (общие + личные)
         var playlists = (List<Playlist>) playlistRepository.findAll();
         var list = playlists
                 .stream()
@@ -54,17 +62,24 @@ public class ApiPlaylistController
         return ResponseEntity.ok(new ListDTO(list));
     }
 
+    /**
+     * Добавление плейлиста.
+     */
     @PostMapping("/api/playlists")
     public ResponseEntity<ApiPlaylistDTO> create(@RequestBody CreatePlaylist createPlaylist)
     {
         var playlist = new Playlist();
         playlist.setName(createPlaylist.getName());
+        // TODO привязка к пользователю
 
         playlistRepository.save(playlist);
 
         return ResponseEntity.ok(transformPlaylistToDto(playlist));
     }
 
+    /**
+     * Добавление трека в плейлист.
+     */
     @PostMapping("/api/playlists/{playlistId}")
     public ResponseEntity<?> addTrack(@PathVariable UUID playlistId, @RequestBody PlaylistAddTrack playlistAddTrack)
     {
@@ -73,6 +88,7 @@ public class ApiPlaylistController
         if (playlist.isEmpty()) {
             return ResponseEntity.badRequest().body("Unknown playlist.");
         }
+        // TODO проверка принадлежности плейлиста
 
         var track = trackRepository.findById(playlistAddTrack.getTrackId().toString());
 
@@ -89,9 +105,13 @@ public class ApiPlaylistController
         return ResponseEntity.ok(transformPlaylistTrackToDto(playlistTrack));
     }
 
+    /**
+     * Список треков из плейлиста.
+     */
     @GetMapping("/api/playlists/{playlistId}/tracks")
     public ResponseEntity<?> tracks(@PathVariable UUID playlistId)
     {
+        // TODO проверка принадлежности плейлиста
         var playlistTracks = playlistTrackRepository.findAllByPlaylistId(playlistId);
         var list = playlistTracks
                 .stream()
@@ -101,18 +121,20 @@ public class ApiPlaylistController
         return ResponseEntity.ok(new ApiListTracksDTO(list));
     }
 
-    @PostMapping("/api/playlist/{playlistId}/select")
+    /**
+     * Выбор активного плейлиста для пользователя.
+     */
+    @PostMapping("/api/playlists/{playlistId}/select")
     public ResponseEntity<?> select(@PathVariable UUID playlistId)
     {
-        var playlist = playlistRepository.findById(playlistId);
+        UUID userId = guestService.currentUserId();
 
-        if (playlist.isEmpty()) {
-            return ResponseEntity.notFound().build();
+        if (userId != null) {
+            playbackService.selectPlaylistForUser(userId, playlistId);
         }
 
-        userPlaylistService.select(playlist.get());
-
         // TODO mark playlist as selected
+
         return ResponseEntity.ok().build();
     }
 

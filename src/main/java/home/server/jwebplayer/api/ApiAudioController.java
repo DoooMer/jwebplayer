@@ -2,36 +2,49 @@ package home.server.jwebplayer.api;
 
 import home.server.jwebplayer.dto.ApiTrackDto;
 import home.server.jwebplayer.dto.PlaylistDto;
-import home.server.jwebplayer.entity.Playlist;
 import home.server.jwebplayer.entity.PlaylistTrack;
 import home.server.jwebplayer.entity.Track;
-import home.server.jwebplayer.service.AudioService;
-import home.server.jwebplayer.service.playlist.PlaylistService;
-import org.springframework.beans.factory.annotation.Autowired;
+import home.server.jwebplayer.repository.PlaylistTrackRepository;
+import home.server.jwebplayer.repository.TrackRepository;
+import home.server.jwebplayer.service.playback.PlaybackService;
+import home.server.jwebplayer.service.user.UserGuestService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import java.util.UUID;
+
 @Controller
 public class ApiAudioController
 {
-    private final AudioService audioService;
+    private final PlaybackService playbackService;
+    private final TrackRepository trackRepository;
+    private final UserGuestService guestService;
+    private final PlaylistTrackRepository playlistTrackRepository;
 
-    private final PlaylistService playlistService;
-
-    @Autowired
-    public ApiAudioController(AudioService audioService, PlaylistService playlistService)
+    public ApiAudioController(
+            PlaybackService playbackService,
+            TrackRepository trackRepository,
+            UserGuestService guestService,
+            PlaylistTrackRepository playlistTrackRepository
+    )
     {
-        this.audioService = audioService;
-        this.playlistService = playlistService;
+        this.playbackService = playbackService;
+        this.trackRepository = trackRepository;
+        this.guestService = guestService;
+        this.playlistTrackRepository = playlistTrackRepository;
     }
 
     @GetMapping("/api/tracks")
+    @Deprecated
     public ResponseEntity<PlaylistDto> currentPlaylist()
     {
-        Playlist defaultPlaylist = playlistService.getDefault();
-        var tracks = playlistService.getTracks(defaultPlaylist).stream()
+        UUID userId = guestService.currentUserId();
+        UUID playlistId = playbackService.getForUser(userId).getPlaylistId();
+
+        var tracks = playlistTrackRepository.findAllByPlaylistId(playlistId)
+                .stream()
                 .map(this::transformPlaylistTrackToDto)
                 .toList();
 
@@ -41,27 +54,48 @@ public class ApiAudioController
     @GetMapping("/api/playback/current")
     public ResponseEntity<ApiTrackDto> current()
     {
-        Track track = audioService.getCurrent();
+        UUID userId = guestService.currentUserId();
+        String trackId = null;
 
-        if (track == null) {
+        if (userId != null) {
+            trackId = playbackService.getForUser(userId).current();
+        }
+
+        if (trackId == null) {
             return ResponseEntity.notFound().build();
         }
 
-        return ResponseEntity.ok(transformTrackToDto(track));
+        var track = trackRepository.findById(trackId);
+
+        return track
+                .map(value -> ResponseEntity.ok(transformTrackToDto(value)))
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping("/api/playback/next")
     public ResponseEntity<ApiTrackDto> next()
     {
-        audioService.next();
+        UUID userId = guestService.currentUserId();
+
+        if (userId != null) {
+            playbackService.getForUser(userId).next();
+        }
 
         return current();
     }
 
-    @GetMapping("/api/playback/{hash}")
-    public ResponseEntity<ApiTrackDto> play(@PathVariable String hash) throws Exception
+    // TODO add prev
+
+    @GetMapping("/api/playback/{trackId}")
+    public ResponseEntity<ApiTrackDto> play(@PathVariable String trackId) throws Exception
     {
-        Track track = audioService.getCurrentByHash(hash);
+        UUID userId = guestService.currentUserId();
+
+        if (userId != null) {
+            playbackService.getForUser(userId).select(trackId);
+        }
+
+        Track track = trackRepository.findById(trackId).orElse(null);
 
         if (track == null) {
             return ResponseEntity.notFound().build();
@@ -77,6 +111,6 @@ public class ApiAudioController
 
     private ApiTrackDto transformPlaylistTrackToDto(PlaylistTrack playlistTrack)
     {
-        return  new ApiTrackDto(playlistTrack.getTrack(), "/download/" + playlistTrack.getTrack().getId());
+        return new ApiTrackDto(playlistTrack.getTrack(), "/download/" + playlistTrack.getTrack().getId());
     }
 }

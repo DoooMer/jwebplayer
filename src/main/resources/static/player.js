@@ -49,7 +49,18 @@ function volumeChange(volume) {
 
 function scrollPlaylistIntoActiveItem() {
     const playlistContainer = document.querySelector('#playlist');
-    playlistContainer.querySelector('.active').scrollIntoView();
+
+    if (!playlistContainer) {
+        return;
+    }
+
+    const active = playlistContainer.querySelector('.active');
+
+    if (!active) {
+        return;
+    }
+
+    active.scrollIntoView();
 }
 
 const WINDOW_TITLE = document.title;
@@ -114,18 +125,7 @@ const app = new Vue({
                 this.loadingTrack = false;
             });
 
-        // load playlist if enabled
-        if (this.showPlaylist) {
-            API.tracks()
-                .then(response => {
-                    this.tracksTotal = response.data.total;
-                    this.tracks = this.playlist = response.data.tracks;
-                })
-                .catch(console.error)
-                .finally(() => {
-                    this.loadingPlaylist = false;
-                });
-        }
+        // loading tracks
 
         // subscribe for changes in storage
         signals.listen(event => {
@@ -175,7 +175,19 @@ const app = new Vue({
                 M.FormSelect.init(document.getElementById('playlist-add-track-selector'));
             });
 
-        scrollPlaylistIntoActiveItem();
+        // load playlist if enabled
+        if (this.showPlaylist) {
+            API.tracks()
+                .then(response => {
+                    this.tracksTotal = response.data.total;
+                    this.tracks = this.playlist = response.data.tracks;
+                })
+                .catch(console.error)
+                .finally(() => {
+                    this.loadingPlaylist = false;
+                    scrollPlaylistIntoActiveItem();
+                });
+        }
     },
     watch: {
         showPlaylist: function (newValue) {
