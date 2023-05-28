@@ -63,6 +63,195 @@ function scrollPlaylistIntoActiveItem() {
     active.scrollIntoView();
 }
 
+Vue.component('track-title', {
+    props: ['title', 'visible'],
+    template: `
+        <h5 v-if="visible && title">{{ title }}</h5>
+        <h5 v-else>&nbsp;</h5>`,
+});
+Vue.component('player-button-prev', {
+    template: `
+        <button @click.prevent="prev" class="btn-flat waves-effect waves-teal" title="Предыдущий трек">
+            <i class="material-icons">skip_previous</i>
+        </button>`,
+    methods: {
+        prev() {
+
+        },
+    },
+});
+Vue.component('player-button-next', {
+    template: `
+        <button @click.prevent="next" class="btn-flat waves-effect waves-teal" title="Следующий трек">
+            <i class="material-icons">skip_next</i>
+        </button>`,
+    methods: {
+        next() {
+            // get link to next track
+            API.playbackNext()
+                .then(response => {
+                    this.$emit('next', {
+                        trackUrl: response.data.downloadUrl,
+                        trackName: response.data.name,
+                        trackId: response.data.id,
+                    })
+                })
+                .catch(e => {
+                    console.error(e);
+                    this.next();
+                });
+        },
+    },
+});
+Vue.component('player-button-repeat', {
+    props: ['repeat'],
+    template: `
+        <button @click.prevent="toggle" :class="{'teal white-text': repeat}" class="btn-flat"
+                title="Режим повтора">
+            <i class="material-icons">repeat</i>
+        </button>`,
+    methods: {
+        toggle() {
+            this.$emit('repeat', !this.repeat);
+        },
+    },
+});
+Vue.component('player-button-settings', {
+    props: ['title', 'playlist'],
+    data() {
+        return {
+            showTitle: this.title,
+            showPlaylist: this.playlist,
+        };
+    },
+    watch: {
+        showTitle() {
+            this.$emit('toggleTitle', this.showTitle);
+        },
+        showPlaylist() {
+            this.$emit('togglePlaylist', this.showPlaylist);
+        },
+    },
+    template: `
+        <div style="display: inline-block;">
+            <a class="waves-effect waves-light btn-flat modal-trigger" title="Настройки" href="#settings">
+                <i class="material-icons">settings</i>
+            </a>
+            <div id="settings" class="modal bottom-sheet">
+                <div class="modal-content">
+                    <h4>Настройки</h4>
+                    <div class="row">
+                        <div class="col s2">
+                            <p>
+                                <label>
+                                    <input type="checkbox" v-model="showTitle"/>
+                                    <span>Показать название</span>
+                                </label>
+                            </p>
+                        </div>
+                        <div class="col s2">
+                            <p>
+                                <label>
+                                    <input type="checkbox" v-model="showPlaylist"/>
+                                    <span>Показать плейлист</span>
+                                </label>
+                            </p>
+                        </div>
+<!--                        <div class="col s2">-->
+<!--                            <div class="input-field">-->
+<!--                                <input type="number" min="200" max="1500" step="100" v-model="muteInterval"-->
+<!--                                       id="muteInterval"/>-->
+<!--                                <label for="muteInterval">Скорость выключения звука</label>-->
+<!--                                <span class="helper-text">мс</span>-->
+<!--                            </div>-->
+<!--                        </div>-->
+                    </div>
+<!--                    <div class="row">-->
+<!--                        <div class="col s2">-->
+<!--                            <p>-->
+<!--                                <a th:href="@{/controls}" target="_blank">Управление</a>-->
+<!--                            </p>-->
+<!--                        </div>-->
+<!--                    </div>-->
+                </div>
+            </div>
+        </div>`,
+    mounted() {
+        M.Modal.init(document.querySelector('#settings'));
+    },
+});
+Vue.component('new-playlist-button', {
+    data() {
+        return {
+            playlistName: '',
+            modal: null,
+        };
+    },
+    template: `
+        <div class="inline">
+            <button data-target="playlist-new" class="btn modal-trigger btn-block">Новый плейлист</button>
+            <div id="playlist-new" class="modal">
+                <div class="modal-content">
+                    <h4>Новый плейлист</h4>
+                    <label>
+                        <input type="text" v-model="playlistName" placeholder="Название"/>
+                    </label>
+                </div>
+                <div class="modal-footer">
+                    <button class="modal-close waves-effect waves-green btn" @click="playlistCreate">Добавить
+                    </button>
+                </div>
+            </div>
+        </div>`,
+    mounted() {
+        this.modal = M.Modal.init(document.getElementById('playlist-new'));
+    },
+    methods: {
+        playlistCreate() {
+            API.createPlaylist(this.playlistName)
+                .then(() => {
+                    this.playlistName = null;
+                    this.modal.close();
+                    this.$emit('playlistCreated');
+                })
+                .catch(console.error)
+                .finally(() => {
+                    // load update list
+                    API.playlists()
+                        .then(response => {
+                            this.playlists = response.data.playlists;
+                        })
+                        .catch(console.error)
+                        .finally(() => {
+                            M.FormSelect.init(document.getElementById('playlist-selector'));
+                            M.FormSelect.init(document.getElementById('playlist-add-track-selector'));
+                        });
+                });
+        },
+    },
+});
+Vue.component('playlist-selector', {
+    props: ['unit'],
+    template: `
+        <button class="btn btn-block btn-flat waves-effect waves-teal hover-teal truncate" :title="unit.name"
+                @click.prevent="selectPlaylist(unit.id)">
+            {{ unit.name }}
+        </button>`,
+    methods: {
+        selectPlaylist(id) {
+            API.selectPlaylist(id)
+                .then(() => {
+                    this.$emit('playlistSelected', id);
+                })
+                .catch(e => {
+                    console.error('Ошибка выбора плейлиста: ', e);
+                    M.toast({html: 'Ошибка переключения плейлиста'});
+                });
+
+        },
+    },
+});
+
 const WINDOW_TITLE = document.title;
 const signals = new Signals();
 const settings = new Settings();
@@ -161,9 +350,9 @@ const app = new Vue({
     },
     mounted() {
         // init modal
-        this.playlistNewModal = M.Modal.init(document.getElementById('playlist-new'));
+        // this.playlistNewModal = M.Modal.init(document.getElementById('playlist-new'));
         M.Modal.init(document.querySelector('#playlist-add-track'));
-        M.Modal.init(document.querySelector('#settings'));
+        // M.Modal.init(document.querySelector('#settings'));
 
         API.playlists()
             .then(response => {
@@ -239,22 +428,23 @@ const app = new Vue({
         },
     },
     methods: {
-        next() {
-            // get link to next track
-            API.playbackNext()
-                .then(response => {
-                    this.trackUrl = response.data.downloadUrl;
-                    this.trackName = response.data.name;
-                    this.trackId = response.data.id;
-                    scrollPlaylistIntoActiveItem();
-                })
-                .catch(e => {
-                    console.error(e);
-                    this.next();
-                });
+        next(event) {
+            this.trackUrl = event.trackUrl;
+            this.trackName = event.trackName;
+            this.trackId = event.trackId;
+            scrollPlaylistIntoActiveItem();
         },
-        prev() {
+        prev(event) {
             // todo: get link to previous track
+        },
+        repeat(event) {
+            this.isRepeat = event;
+        },
+        toggleTitle(event) {
+            this.showTitle = event;
+        },
+        togglePlaylist(event) {
+            this.showPlaylist = event;
         },
         fade() {
             // slow down volume and pause, or set volume to max
@@ -380,25 +570,40 @@ const app = new Vue({
             signals.pushVolumeState(e.target.volume);
         },
         // create a new playlist
-        playlistCreate() {
-            API.createPlaylist(this.playlistNew)
-                .then(() => {
-                    this.playlistNew = null;
-                    this.playlistNewModal.close();
-                    M.toast({html: 'Плейлист создан'});
+        // playlistCreate() {
+        //     API.createPlaylist(this.playlistNew)
+        //         .then(() => {
+        //             this.playlistNew = null;
+        //             this.playlistNewModal.close();
+        //             M.toast({html: 'Плейлист создан'});
+        //         })
+        //         .catch(console.error)
+        //         .finally(() => {
+        //             // load update list
+        //             API.playlists()
+        //                 .then(response => {
+        //                     this.playlists = response.data.playlists;
+        //                 })
+        //                 .catch(console.error)
+        //                 .finally(() => {
+        //                     M.FormSelect.init(document.getElementById('playlist-selector'));
+        //                     M.FormSelect.init(document.getElementById('playlist-add-track-selector'));
+        //                 });
+        //         });
+        // },
+        playlistCreated() {
+            M.toast({html: 'Плейлист создан'});
+            API.playlists()
+                .then(response => {
+                    this.playlists = response.data.playlists;
                 })
-                .catch(console.error)
+                .catch(e => {
+                    console.error('Ошибка обновления списка плейлистов: ', e);
+                    M.toast({html: 'Список плейлистов не удалось обновить'});
+                })
                 .finally(() => {
-                    // load update list
-                    API.playlists()
-                        .then(response => {
-                            this.playlists = response.data.playlists;
-                        })
-                        .catch(console.error)
-                        .finally(() => {
-                            M.FormSelect.init(document.getElementById('playlist-selector'));
-                            M.FormSelect.init(document.getElementById('playlist-add-track-selector'));
-                        });
+                    M.FormSelect.init(document.getElementById('playlist-selector'));
+                    M.FormSelect.init(document.getElementById('playlist-add-track-selector'));
                 });
         },
         // add track to playlist
@@ -429,24 +634,35 @@ const app = new Vue({
                     this.playlistSelectedToAddTrack = null;
                 });
         },
-        selectPlaylist(playlistId) {
-            API.selectPlaylist(playlistId)
-                .then(() => {
-                    API.playlist(playlistId)
-                        .then(response => {
-                            this.tracksTotal = response.data.total;
-                            this.tracks = this.playlist = response.data.playlistTracks || [];
-                        })
-                        .catch(e => {
-                            console.error(e);
-                            M.toast({html: 'Не удалось загрузить список треков для плейлиста'});
-                        });
+        playlistSelected(playlistId) {
+            API.playlist(playlistId)
+                .then(response => {
+                    this.tracksTotal = response.data.total;
+                    this.tracks = this.playlist = response.data.playlistTracks || [];
                 })
                 .catch(e => {
-                    console.error(e);
-                    M.toast({html: 'Ошибка переключения плейлиста'});
+                    console.error('Ошибка загрузки списка треков из плейлиста: ', e);
+                    M.toast({html: 'Не удалось загрузить список треков для плейлиста'});
                 });
-
         },
+        // selectPlaylist(playlistId) {
+        //     API.selectPlaylist(playlistId)
+        //         .then(() => {
+        //             API.playlist(playlistId)
+        //                 .then(response => {
+        //                     this.tracksTotal = response.data.total;
+        //                     this.tracks = this.playlist = response.data.playlistTracks || [];
+        //                 })
+        //                 .catch(e => {
+        //                     console.error(e);
+        //                     M.toast({html: 'Не удалось загрузить список треков для плейлиста'});
+        //                 });
+        //         })
+        //         .catch(e => {
+        //             console.error(e);
+        //             M.toast({html: 'Ошибка переключения плейлиста'});
+        //         });
+        //
+        // },
     }
 });

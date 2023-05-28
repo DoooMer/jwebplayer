@@ -1,10 +1,10 @@
 version: '3'
 services:
-  nodejs:
+  player:
     build:
       context: .docker
       dockerfile: node.docker
     ports:
-      - "8080"
+      - "8090"
     volumes:
-      - ./src/main/js:/home/node/app
+      - ./src/main/player:/home/node/app
