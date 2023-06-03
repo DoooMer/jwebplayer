@@ -157,14 +157,6 @@ Vue.component('player-button-settings', {
                                 </label>
                             </p>
                         </div>
-<!--                        <div class="col s2">-->
-<!--                            <div class="input-field">-->
-<!--                                <input type="number" min="200" max="1500" step="100" v-model="muteInterval"-->
-<!--                                       id="muteInterval"/>-->
-<!--                                <label for="muteInterval">Скорость выключения звука</label>-->
-<!--                                <span class="helper-text">мс</span>-->
-<!--                            </div>-->
-<!--                        </div>-->
                     </div>
 <!--                    <div class="row">-->
 <!--                        <div class="col s2">-->
@@ -266,12 +258,12 @@ const app = new Vue({
         showTitle: true,
         // display all tracks under player
         showPlaylist: true,
-        // timer duration for each fade step
-        muteInterval: 300,
-        // saved previous volume state
-        mute_prev: null,
-        // flag is true when fade is activated
-        isFade: false,
+        // // timer duration for each fade step
+        // muteInterval: 300,
+        // // saved previous volume state
+        // mute_prev: null,
+        // // flag is true when fade is activated
+        // isFade: false,
         // flag is true when repeat is enabled
         isRepeat: true,
         // current track data
@@ -446,24 +438,24 @@ const app = new Vue({
         togglePlaylist(event) {
             this.showPlaylist = event;
         },
-        fade() {
-            // slow down volume and pause, or set volume to max
-            const player = document.getElementById('player');
-
-            // restore volume (max)
-            if (player.volume < 0.1 || this.mute_prev !== null) {
-                player.volume = this.mute_prev; // restore previous volume level
-                this.mute_prev = null;
-                return;
-            }
-
-            this.mute_prev = player.volume; // remember volume level
-            this.isFade = true;
-
-            fade(this.muteInterval, 0.1, () => {
-                this.isFade = false
-            });
-        },
+        // fade() {
+        //     // slow down volume and pause, or set volume to max
+        //     const player = document.getElementById('player');
+        //
+        //     // restore volume (max)
+        //     if (player.volume < 0.1 || this.mute_prev !== null) {
+        //         player.volume = this.mute_prev; // restore previous volume level
+        //         this.mute_prev = null;
+        //         return;
+        //     }
+        //
+        //     this.mute_prev = player.volume; // remember volume level
+        //     this.isFade = true;
+        //
+        //     fade(this.muteInterval, 0.1, () => {
+        //         this.isFade = false
+        //     });
+        // },
         play(id) {
             // get selected track and play
             API.playbackId(id)
@@ -474,43 +466,43 @@ const app = new Vue({
                 })
                 .catch(console.error);
         },
-        dnd() {
-            // do not disturb
-            if (!this.dnd_prev && (this.showTitle || this.showPlaylist)) {
-                // save state
-                this.dnd_prev = {
-                    showTitle: this.showTitle,
-                    showPlaylist: this.showPlaylist,
-                };
-                // on
-                this.showTitle = false;
-                this.showPlaylist = false;
-                return;
-            }
-
-            if (this.showTitle ^ this.showPlaylist) {
-                // save state
-                this.dnd_prev = {
-                    showTitle: this.showTitle,
-                    showPlaylist: this.showPlaylist,
-                };
-                // on
-                this.showTitle = false;
-                this.showPlaylist = false;
-                return;
-            }
-
-            // off, back to previous state
-            if (this.dnd_prev) {
-                this.showTitle = this.dnd_prev.showTitle;
-                this.showPlaylist = this.dnd_prev.showPlaylist;
-                this.dnd_prev = null;
-            } else {
-                this.showTitle = true;
-                this.showPlaylist = true;
-            }
-
-        },
+        // dnd() {
+        //     // do not disturb
+        //     if (!this.dnd_prev && (this.showTitle || this.showPlaylist)) {
+        //         // save state
+        //         this.dnd_prev = {
+        //             showTitle: this.showTitle,
+        //             showPlaylist: this.showPlaylist,
+        //         };
+        //         // on
+        //         this.showTitle = false;
+        //         this.showPlaylist = false;
+        //         return;
+        //     }
+        //
+        //     if (this.showTitle ^ this.showPlaylist) {
+        //         // save state
+        //         this.dnd_prev = {
+        //             showTitle: this.showTitle,
+        //             showPlaylist: this.showPlaylist,
+        //         };
+        //         // on
+        //         this.showTitle = false;
+        //         this.showPlaylist = false;
+        //         return;
+        //     }
+        //
+        //     // off, back to previous state
+        //     if (this.dnd_prev) {
+        //         this.showTitle = this.dnd_prev.showTitle;
+        //         this.showPlaylist = this.dnd_prev.showPlaylist;
+        //         this.dnd_prev = null;
+        //     } else {
+        //         this.showTitle = true;
+        //         this.showPlaylist = true;
+        //     }
+        //
+        // },
         handleCtrl(data) {
             console.debug(data);
 

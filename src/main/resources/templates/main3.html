@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="https://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Web audio player 3</title>
+    <link rel="stylesheet" href="/materialize/css/materialize.min.css">
+<!--    <link rel="stylesheet" href="/dist/style.css">-->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        body {
+            font-family: monospace;
+        }
+
+        #player {
+            width: 100%;
+        }
+
+        .frame {
+            display: flex;
+            flex-direction: column;
+            height: 70vh;
+            margin: 0 10px;
+        }
+
+        .frame li:first-child {
+            margin-top: 0;
+        }
+
+        .frame li:last-child {
+            margin-bottom: 0;
+        }
+
+        .frame a {
+            display: block;
+            padding: 10px;
+        }
+
+        .frame section {
+            position: relative;
+        }
+
+        .frame section .track-title {
+            margin-right: 50px;
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        .frame section .track-actions {
+            display: none;
+            margin-left: 5px;
+            margin-right: 10px;
+            position: absolute;
+            right: 0;
+            top: 9px;
+            cursor: pointer;
+        }
+
+        .frame li:hover .track-actions {
+            display: inline-block;
+        }
+
+        .frame li:hover {
+            background-color: #e0f2f1;
+        }
+
+        .scroll {
+            flex: 0 1 100%;
+            border: none;
+            overflow-y: auto;
+            overflow-style: marquee-line;
+        }
+
+        .active {
+            color: #F44336;
+        }
+
+        .btn-block {
+            width: 100%;
+        }
+
+        .btn.hover-teal:hover {
+            background-color: #e0f2f1;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <a th:href="@{/login}" title="Вход" sec:authorize="isAnonymous()" class="right">
+        войти
+    </a>
+    <a disabled th:title="${#authentication.principal.username}" class="right" href="#" sec:authorize="isAuthenticated()">
+        [[${#authentication.principal.username}]]
+    </a>
+</div>
+<div th:replace="fragments/player::player"></div>
+<script type="text/javascript" src="/libs.min.js"></script>
+<script type="text/javascript" src="/player.dist.js"></script>
+</body>
+</html>

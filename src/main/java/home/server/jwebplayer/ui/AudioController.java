@@ -2,51 +2,26 @@ package home.server.jwebplayer.ui;
 
 import home.server.jwebplayer.entity.Track;
 import home.server.jwebplayer.service.AudioService;
-import home.server.jwebplayer.service.user.UserGuestService;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 
 @Controller
 public class AudioController
 {
     private final AudioService audioService;
 
-    private final UserGuestService guestService;
 
-    public AudioController(AudioService audioService, UserGuestService guestService)
+    public AudioController(AudioService audioService)
     {
         this.audioService = audioService;
-        this.guestService = guestService;
-    }
-
-    @GetMapping("/")
-    public String main(Model model) throws UnsupportedEncodingException
-    {
-        model.addAttribute("tracks", audioService.getAllTracks());
-        model.addAttribute("total", audioService.getAllTracks().size());
-
-        // инициализируется UID гостя, сохраняется в сессию
-        guestService.currentUserId();
-        // TODO удалять состояния плеера гостей когда их сессия закрывается
-
-        return "main2";
-    }
-
-    @GetMapping("/controls")
-    @Deprecated
-    public String controls()
-    {
-        return "controls";
     }
 
     @GetMapping(value = "/download/{hash}", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
