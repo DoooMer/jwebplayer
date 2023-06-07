@@ -6,4 +6,4 @@ RUN apk add --update \
 	g++ \
 	&& rm -rf /var/cache/apk/*
 
-WORKDIR /home/node/app
+WORKDIR /home/node/app/frontend

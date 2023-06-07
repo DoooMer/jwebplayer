@@ -84,14 +84,6 @@
     </style>
 </head>
 <body>
-<div class="container">
-    <a th:href="@{/login}" title="Вход" sec:authorize="isAnonymous()" class="right">
-        войти
-    </a>
-    <a disabled th:title="${#authentication.principal.username}" class="right" href="#" sec:authorize="isAuthenticated()">
-        [[${#authentication.principal.username}]]
-    </a>
-</div>
 <div th:replace="fragments/player::player"></div>
 <script type="text/javascript" src="/libs.min.js"></script>
 <script type="text/javascript" src="/player.dist.js"></script>

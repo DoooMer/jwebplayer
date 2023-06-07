@@ -19,23 +19,23 @@ document
     });
 
 // slow fade playback and pause when volume is low
-function fade(period, step, callback) {
-    const timer = setInterval(() => {
-        const player = document.getElementById('player');
-
-        if (player.volume > step) {
-            player.volume -= step;
-        } else {
-            player.volume = 0;
-            callback();
-            clearInterval(timer);
-        }
-
-        if (player.volume <= step) {
-            player.pause();
-        }
-    }, period);
-}
+// function fade(period, step, callback) {
+//     const timer = setInterval(() => {
+//         const player = document.getElementById('player');
+//
+//         if (player.volume > step) {
+//             player.volume -= step;
+//         } else {
+//             player.volume = 0;
+//             callback();
+//             clearInterval(timer);
+//         }
+//
+//         if (player.volume <= step) {
+//             player.pause();
+//         }
+//     }, period);
+// }
 
 function playpause() {
     const player = document.getElementById('player');
@@ -126,10 +126,10 @@ Vue.component('player-button-settings', {
     },
     watch: {
         showTitle() {
-            this.$emit('toggleTitle', this.showTitle);
+            this.$emit('toggle-title', this.showTitle);
         },
         showPlaylist() {
-            this.$emit('togglePlaylist', this.showPlaylist);
+            this.$emit('toggle-playlist', this.showPlaylist);
         },
     },
     template: `
@@ -158,13 +158,6 @@ Vue.component('player-button-settings', {
                             </p>
                         </div>
                     </div>
-<!--                    <div class="row">-->
-<!--                        <div class="col s2">-->
-<!--                            <p>-->
-<!--                                <a th:href="@{/controls}" target="_blank">Управление</a>-->
-<!--                            </p>-->
-<!--                        </div>-->
-<!--                    </div>-->
                 </div>
             </div>
         </div>`,
@@ -190,7 +183,7 @@ Vue.component('new-playlist-button', {
                     </label>
                 </div>
                 <div class="modal-footer">
-                    <button class="modal-close waves-effect waves-green btn" @click="playlistCreate">Добавить
+                    <button class="waves-effect waves-green btn" @click.prevent="playlistCreate">Добавить
                     </button>
                 </div>
             </div>
@@ -201,24 +194,12 @@ Vue.component('new-playlist-button', {
     methods: {
         playlistCreate() {
             API.createPlaylist(this.playlistName)
-                .then(() => {
+                .then(response => {
                     this.playlistName = null;
                     this.modal.close();
-                    this.$emit('playlistCreated');
+                    this.$emit('playlist-created', response.data);
                 })
-                .catch(console.error)
-                .finally(() => {
-                    // load update list
-                    API.playlists()
-                        .then(response => {
-                            this.playlists = response.data.playlists;
-                        })
-                        .catch(console.error)
-                        .finally(() => {
-                            M.FormSelect.init(document.getElementById('playlist-selector'));
-                            M.FormSelect.init(document.getElementById('playlist-add-track-selector'));
-                        });
-                });
+                .catch(console.error);
         },
     },
 });
@@ -233,7 +214,7 @@ Vue.component('playlist-selector', {
         selectPlaylist(id) {
             API.selectPlaylist(id)
                 .then(() => {
-                    this.$emit('playlistSelected', id);
+                    this.$emit('playlist-selected', id);
                 })
                 .catch(e => {
                     console.error('Ошибка выбора плейлиста: ', e);
@@ -393,9 +374,9 @@ const app = new Vue({
         isRepeat: function (newValue) {
             settings.setRepeat(newValue);
         },
-        muteInterval: function (newValue) {
-            settings.setMuteInterval(newValue);
-        },
+        // muteInterval: function (newValue) {
+        //     settings.setMuteInterval(newValue);
+        // },
         search: function (newValue) {
             // filtering playlist by text (name)
             if (newValue == null || newValue.length < 1) {
@@ -426,36 +407,26 @@ const app = new Vue({
             this.trackId = event.trackId;
             scrollPlaylistIntoActiveItem();
         },
+        autoplayNext() {
+
+            if (!this.isRepeat) {
+                return;
+            }
+
+            this.$refs.nextBtn.next();
+        },
         prev(event) {
             // todo: get link to previous track
         },
         repeat(event) {
             this.isRepeat = event;
         },
-        toggleTitle(event) {
+        toggleTitle(event) {console.log('showTitle: ', event);
             this.showTitle = event;
         },
         togglePlaylist(event) {
             this.showPlaylist = event;
         },
-        // fade() {
-        //     // slow down volume and pause, or set volume to max
-        //     const player = document.getElementById('player');
-        //
-        //     // restore volume (max)
-        //     if (player.volume < 0.1 || this.mute_prev !== null) {
-        //         player.volume = this.mute_prev; // restore previous volume level
-        //         this.mute_prev = null;
-        //         return;
-        //     }
-        //
-        //     this.mute_prev = player.volume; // remember volume level
-        //     this.isFade = true;
-        //
-        //     fade(this.muteInterval, 0.1, () => {
-        //         this.isFade = false
-        //     });
-        // },
         play(id) {
             // get selected track and play
             API.playbackId(id)
@@ -466,43 +437,6 @@ const app = new Vue({
                 })
                 .catch(console.error);
         },
-        // dnd() {
-        //     // do not disturb
-        //     if (!this.dnd_prev && (this.showTitle || this.showPlaylist)) {
-        //         // save state
-        //         this.dnd_prev = {
-        //             showTitle: this.showTitle,
-        //             showPlaylist: this.showPlaylist,
-        //         };
-        //         // on
-        //         this.showTitle = false;
-        //         this.showPlaylist = false;
-        //         return;
-        //     }
-        //
-        //     if (this.showTitle ^ this.showPlaylist) {
-        //         // save state
-        //         this.dnd_prev = {
-        //             showTitle: this.showTitle,
-        //             showPlaylist: this.showPlaylist,
-        //         };
-        //         // on
-        //         this.showTitle = false;
-        //         this.showPlaylist = false;
-        //         return;
-        //     }
-        //
-        //     // off, back to previous state
-        //     if (this.dnd_prev) {
-        //         this.showTitle = this.dnd_prev.showTitle;
-        //         this.showPlaylist = this.dnd_prev.showPlaylist;
-        //         this.dnd_prev = null;
-        //     } else {
-        //         this.showTitle = true;
-        //         this.showPlaylist = true;
-        //     }
-        //
-        // },
         handleCtrl(data) {
             console.debug(data);
 
@@ -561,29 +495,8 @@ const app = new Vue({
         syncVolume(e) {
             signals.pushVolumeState(e.target.volume);
         },
-        // create a new playlist
-        // playlistCreate() {
-        //     API.createPlaylist(this.playlistNew)
-        //         .then(() => {
-        //             this.playlistNew = null;
-        //             this.playlistNewModal.close();
-        //             M.toast({html: 'Плейлист создан'});
-        //         })
-        //         .catch(console.error)
-        //         .finally(() => {
-        //             // load update list
-        //             API.playlists()
-        //                 .then(response => {
-        //                     this.playlists = response.data.playlists;
-        //                 })
-        //                 .catch(console.error)
-        //                 .finally(() => {
-        //                     M.FormSelect.init(document.getElementById('playlist-selector'));
-        //                     M.FormSelect.init(document.getElementById('playlist-add-track-selector'));
-        //                 });
-        //         });
-        // },
-        playlistCreated() {
+        playlistCreated(event) {
+            console.log('Playlist created: ', event);
             M.toast({html: 'Плейлист создан'});
             API.playlists()
                 .then(response => {
