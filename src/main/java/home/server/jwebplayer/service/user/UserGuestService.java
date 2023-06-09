@@ -44,7 +44,7 @@ public class UserGuestService
         }
 
 
-        UUID uid = UUID.randomUUID();
+        UUID uid = UUID.nameUUIDFromBytes(httpSession.getId().getBytes());
         httpSession.setAttribute("uid", uid.toString());
 
         return uid;

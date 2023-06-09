@@ -25,4 +25,9 @@ public class ApiTrackDto
     {
         return track.getName();
     }
+
+    public String getDirectory()
+    {
+        return track.getDirectory();
+    }
 }

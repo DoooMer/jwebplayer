@@ -6,8 +6,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 
-import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
-import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
+import static java.nio.file.StandardWatchEventKinds.*;
 
 /**
  * Watcher of root directory.
@@ -52,7 +51,7 @@ public class DirectoryWatcher implements Runnable
 
     private void watchDirectory(Path path, WatchService watchService) throws IOException
     {
-        path.register(watchService, ENTRY_CREATE, ENTRY_DELETE);
+        path.register(watchService, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
 
         var files = path.toFile().listFiles();
 
