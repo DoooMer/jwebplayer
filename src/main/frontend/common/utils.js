@@ -1,4 +1,32 @@
-class Signals {
+import axios from "axios";
+
+export function playpause() {
+    const player = document.getElementById('player');
+    return player.paused ? player.play() : player.pause();
+}
+
+export function volumeChange(volume) {
+    const player = document.getElementById('player');
+    player.volume = volume;
+}
+
+export function scrollPlaylistIntoActiveItem() {
+    const playlistContainer = document.querySelector('#playlist');
+
+    if (!playlistContainer) {
+        return;
+    }
+
+    const active = playlistContainer.querySelector('.active');
+
+    if (!active) {
+        return;
+    }
+
+    active.scrollIntoView();
+}
+
+export class Signals {
 
     static CTRL_TRACKID = 'jwp_ctrl_trackId';
     static CTRL_TUNNEL = 'jwp_ctrl_tunnel';
@@ -76,7 +104,7 @@ class Signals {
     }
 }
 
-class Settings {
+export class Settings {
     static SHOW_TITLE = 'jwp_showTitle';
     static SHOW_PLAYLIST = 'jwp_showPlaylist';
     static SHOW_SETTINGS = 'jwp_showSettings';
@@ -146,7 +174,7 @@ class Settings {
     }
 }
 
-class API {
+export class API {
 
     static tracks() {
         return axios.get('/api/tracks');
@@ -186,15 +214,7 @@ class API {
 
 }
 
-class MemeAPI {
-
-    static random() {
-        return axios.get('https://meme-api.herokuapp.com/gimme');
-    }
-
-}
-
-class CtrlEvent {
+export class CtrlEvent {
 
     static NEXT = 'next';
     static PLAYPAUSE = 'playpause';

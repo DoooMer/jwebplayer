@@ -28,7 +28,7 @@ public class AppController
         guestService.currentUserId();
         // TODO удалять состояния плеера гостей когда их сессия закрывается
 
-        return "main3";
+        return "player";
     }
 
     @GetMapping("/controls")

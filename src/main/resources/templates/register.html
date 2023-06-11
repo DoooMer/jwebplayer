@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Web audio player - Регистрация</title>
-    <link rel="stylesheet" href="/materialize/css/materialize.min.css">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link th:replace="fragments/materialize::css">
+    <link th:replace="fragments/materialize::font">
 </head>
 <body>
 <div class="container">
@@ -23,7 +23,6 @@
                                 <span class="helper-text"></span>
                             </div>
                         </div>
-<!--                        <input type="hidden" name="password"/>-->
                     </div>
                 </div>
                 <div class="row">
@@ -37,6 +36,6 @@
         </div>
     </div>
 </div>
-<script src="/materialize/js/materialize.min.js"></script>
+<div th:replace="fragments/materialize::js"></div>
 </body>
 </html>

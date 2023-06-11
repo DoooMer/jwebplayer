@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <title>Web audio player 3</title>
-    <link rel="stylesheet" href="/materialize/css/materialize.min.css">
-<!--    <link rel="stylesheet" href="/dist/style.css">-->
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link th:replace="fragments/materialize::css">
+    <link th:replace="fragments/materialize::font">
+<!--    <link rel="stylesheet" href="/js/assets/main-fc5f319f.css">-->
     <style>
         body {
             font-family: monospace;
@@ -85,7 +85,7 @@
 </head>
 <body>
 <div th:replace="fragments/player::player"></div>
-<script type="text/javascript" src="/libs.min.js"></script>
-<script type="text/javascript" src="/player.dist.js"></script>
+<script type="module" src="http://localhost:8090/@vite/client"></script>
+<script type="module" src="http://localhost:8090/player/main.js"></script>
 </body>
 </html>

@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" xmlns:th="https://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>Web audio player - remote control</title>
-    <link rel="stylesheet" href="/materialize/css/materialize.min.css">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link th:replace="fragments/materialize::css">
+    <link th:replace="fragments/materialize::font">
     <style>
         body {
             font-family: monospace;
@@ -23,85 +23,15 @@
             overflow-y: auto;
             overflow-style: marquee-line;
         }
+
+        .frame li:hover {
+            background-color: #e0f2f1;
+        }
     </style>
 </head>
 <body>
-<div class="container" id="app">
-    <div class="row" v-if="loading">
-        Загрузка...
-    </div>
-    <div class="row" v-show="!loading" style="display: none;">
-        <div class="col s3">
-            <p>
-                <label>
-                    <input type="checkbox" v-model="showTitle"/>
-                    <span>Показать название</span>
-                </label>
-            </p>
-            <p>
-                <label>
-                    <input type="checkbox" v-model="showPlaylist"/>
-                    <span>Показать плейлист</span>
-                </label>
-            </p>
-            <p>
-                <label>
-                    <input type="checkbox" v-model="isRepeat"/>
-                    <span>Повтор</span>
-                </label>
-            </p>
-            <div class="input-field" style="margin-top: 15px;">
-                <input type="number" min="200" max="1500" step="100" v-model="muteInterval" id="muteInterval"/>
-                <label for="muteInterval">Скорость выключения звука</label>
-                <span class="helper-text">мс</span>
-            </div>
-            <p>Всего треков: {{ tracksTotal }}</p>
-            <div>
-                <p>Громкость ({{ volume.toFixed(4) }})</p>
-                <input type="range" v-model="volume" min="0.0001" max="1" step="0.001"/>
-            </div>
-            <div>
-                <button @click.prevent="showTitle = false;showPlaylist = false" class="btn-flat waves-effect waves-teal btn-large">
-                    <i class="material-icons">do_not_disturb_on</i>
-                </button>
-                <button @click.prevent="toggleMute" class="btn-flat btn-large waves-effect waves-teal">
-                    <i class="material-icons">{{ mute ? 'volume_up' : 'volume_off' }}</i>
-                </button>
-                <button @click.prevent="next" class="btn-flat waves-effect waves-teal btn-large">
-                    <i class="material-icons">skip_next</i>
-                </button>
-                <button @click.prevent="playpause" class="waves-effect waves-teal btn-large" :class="{'btn-flat': playState !== 'play', 'btn': playState === 'play'}" :disabled="playState === undefined">
-                    <i class="material-icons">play_arrow</i>
-                </button>
-                <button @click.prevent="meme" class="btn-flat waves-effect waves-teal btn-large" title="Вкл мемы">
-                    <i class="material-icons">attachment</i>
-                </button>
-            </div>
-        </div>
-        <div class="col s9">
-            <div class="input-field">
-                <input type="text" placeholder="поиск" v-model="search" id="search"/>
-                <label for="search"></label>
-            </div>
-            <div class="frame">
-                <ul v-if="tracks.length" class="scroll">
-                    <li v-for="track in tracks">
-                        <a href="#" @click.prevent="play(track.id)" :title="track.name + ' | ' + track.id">
-                            <template v-if="track.id === trackId">
-                                <i class="material-icons tiny">play_arrow</i>&nbsp;
-                            </template>
-                            {{ track.name }}
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </div>
-</div>
-<script src="/axios/axios.min.js"></script>
-<script src="/vue/vue.js"></script>
-<script src="/materialize/js/materialize.min.js"></script>
-<script type="text/javascript" src="/utils.js"></script>
-<script type="text/javascript" src="/controls.js"></script>
+<div th:replace="fragments/player::controls"></div>
+<script type="module" src="http://localhost:8090/@vite/client"></script>
+<script type="module" src="http://localhost:8090/controls/main.js"></script>
 </body>
 </html>

@@ -1,10 +1,16 @@
 version: '3'
 services:
-  player:
+  nodejs:
     build:
       context: .docker
       dockerfile: node.docker
+#    entrypoint: "npm"
+    command:
+      - npm
+      - run
+      - dev
+    working_dir: /home/node/app/frontend
     ports:
-      - "8090"
+      - "8090:8090"
     volumes:
       - ./src/main:/home/node/app
