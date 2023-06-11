@@ -5,7 +5,7 @@
 </template>
 
 <script>
-import {API} from "../../common/utils";
+import {API} from "../../../common/utils.js";
 
 export default {
   methods: {

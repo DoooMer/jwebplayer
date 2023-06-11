@@ -10,9 +10,7 @@ export default {
       loading: true,
       showTitle: true,
       showPlaylist: false,
-      showMeme: false,
       isRepeat: true,
-      muteInterval: 300,
       trackId: null,
       // playlist (all tracks)
       tracksTotal: 0,
@@ -21,8 +19,6 @@ export default {
       search: null,
       // playlist filtered by search (if set)
       tracks: [],
-      dnd: false,
-      mute: false,
       playState: undefined,
       volume: 1,
     };
@@ -31,9 +27,7 @@ export default {
     // load current state
     this.showTitle = settings.getShowTitle();
     this.showPlaylist = settings.getShowPlaylist();
-    this.showMeme = settings.getShowMeme();
     this.isRepeat = settings.getRepeat();
-    this.muteInterval = settings.getMuteInterval();
     this.trackId = signals.getTrackId();
 
     // sync not stored state of player
@@ -70,14 +64,8 @@ export default {
         case Settings.SHOW_PLAYLIST:
           this.showPlaylist = value;
           break;
-        case Settings.SHOW_MEME:
-          this.showMeme = value;
-          break;
         case Settings.REPEAT:
           this.isRepeat = value;
-          break;
-        case Settings.MUTE_INTERVAL:
-          this.muteInterval = value;
           break;
       }
     });
@@ -101,9 +89,6 @@ export default {
     trackId: function (newValue) {
       signals.pushTrackId(newValue);
     },
-    mute: function (newValue) {
-      signals.pushMute(newValue);
-    },
     showTitle: function (newValue) {
       settings.setShowTitle(newValue);
     },
@@ -111,14 +96,8 @@ export default {
       settings.setShowPlaylist(newValue);
       this.showMeme = newValue ? false : this.showMeme;
     },
-    showMeme: function (newValue) {
-      settings.setShowMeme(newValue);
-    },
     isRepeat: function (newValue) {
       settings.setRepeat(newValue);
-    },
-    muteInterval: function (newValue) {
-      settings.setMuteInterval(newValue);
     },
     volume: function (newValue) {
       signals.pushVolumeChange(newValue);
@@ -143,23 +122,14 @@ export default {
           break;
       }
     },
+    prev() {
+
+    },
     next() {
       signals.pushNext();
     },
     playpause() {
       signals.pushPlayPause();
-    },
-    dnd() {
-      this.showTitle = false;
-      this.showPlaylist = false;
-    },
-    meme() {
-      if (!this.showPlaylist) {
-        this.showMeme = !this.showMeme;
-      }
-    },
-    toggleMute() {
-      this.mute = !this.mute;
     },
   },
 }
@@ -189,24 +159,12 @@ export default {
           <span>Повтор</span>
         </label>
       </p>
-<!--      <div class="input-field" style="margin-top: 15px;">-->
-<!--        <input type="number" min="200" max="1500" step="100" v-model="muteInterval" id="muteInterval"/>-->
-<!--        <label for="muteInterval">Скорость выключения звука</label>-->
-<!--        <span class="helper-text">мс</span>-->
-<!--      </div>-->
       <p>Всего треков: {{ tracksTotal }}</p>
       <div>
         <p>Громкость ({{ volume.toFixed(4) }})</p>
         <input type="range" v-model="volume" min="0.0001" max="1" step="0.001"/>
       </div>
       <div>
-<!--        <button @click.prevent="showTitle = false;showPlaylist = false"-->
-<!--                class="btn-flat waves-effect waves-teal btn-large">-->
-<!--          <i class="material-icons">do_not_disturb_on</i>-->
-<!--        </button>-->
-<!--        <button @click.prevent="toggleMute" class="btn-flat btn-large waves-effect waves-teal">-->
-<!--          <i class="material-icons">{{ mute ? 'volume_up' : 'volume_off' }}</i>-->
-<!--        </button>-->
         <button @click.prevent="" class="btn-flat waves-effect waves-teal btn-large">
           <i class="material-icons">skip_previous</i>
         </button>
@@ -218,9 +176,6 @@ export default {
         <button @click.prevent="next" class="btn-flat waves-effect waves-teal btn-large">
           <i class="material-icons">skip_next</i>
         </button>
-<!--        <button @click.prevent="meme" class="btn-flat waves-effect waves-teal btn-large" title="Вкл мемы">-->
-<!--          <i class="material-icons">attachment</i>-->
-<!--        </button>-->
       </div>
     </div>
     <div class="col s9">

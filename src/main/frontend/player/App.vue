@@ -1,13 +1,13 @@
 <script>
 import Materialize from 'materialize-css';
 import {Signals, Settings, API, CtrlEvent} from "../common/utils";
-import PlayerTrackTitle from "./components/PlayerTrackTitle.vue";
-import PlayerButtonPrev from "./components/PlayerButtonPrev.vue";
-import PlayerButtonNext from "./components/PlayerButtonNext.vue";
-import PlayerButtonRepeat from "./components/PlayerButtonRepeat.vue";
-import PlaylistButtonNew from "./components/PlaylistButtonNew.vue";
-import PlaylistSelector from "./components/PlaylistSelector.vue";
-import PlayerButtonSettings from "./components/PlayerButtonSettings.vue";
+import PlayerTrackTitle from "./components/player/PlayerTrackTitle.vue";
+import PlayerButtonPrev from "./components/player/PlayerButtonPrev.vue";
+import PlayerButtonNext from "./components/player/PlayerButtonNext.vue";
+import PlayerButtonRepeat from "./components/player/PlayerButtonRepeat.vue";
+import PlaylistButtonNew from "./components/playlist/PlaylistButtonNew.vue";
+import PlaylistSelector from "./components/playlist/PlaylistSelector.vue";
+import PlayerButtonSettings from "./components/player/PlayerButtonSettings.vue";
 
 const WINDOW_TITLE = document.title;
 const signals = new Signals();
@@ -77,7 +77,6 @@ export default {
     this.showTitle = settings.getShowTitle();
     this.showPlaylist = settings.getShowPlaylist();
     this.isRepeat = settings.getRepeat();
-    this.muteInterval = settings.getMuteInterval();
 
     // get link to current track on load app
     API.playbackCurrent()
@@ -118,9 +117,6 @@ export default {
           break;
         case Settings.REPEAT:
           this.isRepeat = value;
-          break;
-        case Settings.MUTE_INTERVAL:
-          this.muteInterval = value;
           break;
       }
     })
@@ -178,9 +174,6 @@ export default {
     isRepeat: function (newValue) {
       settings.setRepeat(newValue);
     },
-    // muteInterval: function (newValue) {
-    //     settings.setMuteInterval(newValue);
-    // },
     search: function (newValue) {
       // filtering playlist by text (name)
       if (newValue == null || newValue.length < 1) {
@@ -268,20 +261,11 @@ export default {
         case CtrlEvent.VOLUMECHANGE:
           volumeChange(data.value);
           break;
-        case CtrlEvent.MUTE:
-          this.fade();
-          signals.reset();
-          break;
-        case CtrlEvent.DND:
-          this.dnd();
-          signals.reset();
-          break;
         case CtrlEvent.SYNCALL:
           let player = document.getElementById('player');
           signals.pushDataSyncAll({
             volume: player.volume,
-            playpause: player.paused ? 'pause' : 'play',
-            mute: !!this.mute_prev,
+            playpause: player.paused ? 'pause' : 'play'
           });
           break;
       }

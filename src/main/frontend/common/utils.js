@@ -37,12 +37,6 @@ export class Signals {
         });
     }
 
-    pushMute() {
-        this._push({
-            action: CtrlEvent.MUTE,
-        });
-    }
-
     pushPlayState(state) {
         this._push({
             action: CtrlEvent.PLAYSTATE,
@@ -108,9 +102,7 @@ export class Settings {
     static SHOW_TITLE = 'jwp_showTitle';
     static SHOW_PLAYLIST = 'jwp_showPlaylist';
     static SHOW_SETTINGS = 'jwp_showSettings';
-    static SHOW_MEME = 'jwp+showMeme';
     static REPEAT = 'jwp_repeat';
-    static MUTE_INTERVAL = 'jwp_muteInterval';
 
     getShowTitle() {
         return JSON.parse(localStorage.getItem(Settings.SHOW_TITLE) || 'true');
@@ -128,28 +120,12 @@ export class Settings {
         localStorage.setItem(Settings.SHOW_PLAYLIST, JSON.stringify(value));
     }
 
-    getShowMeme() {
-        return JSON.parse(localStorage.getItem(Settings.SHOW_MEME) || 'false');
-    }
-
-    setShowMeme(value) {
-        localStorage.setItem(Settings.SHOW_MEME, JSON.stringify(value));
-    }
-
     getRepeat() {
         return JSON.parse(localStorage.getItem(Settings.REPEAT) || 'true');
     }
 
     setRepeat(value) {
         localStorage.setItem(Settings.REPEAT, JSON.stringify(value));
-    }
-
-    getMuteInterval() {
-        return JSON.parse(localStorage.getItem(Settings.MUTE_INTERVAL) || '300');
-    }
-
-    setMuteInterval(value) {
-        localStorage.setItem(Settings.MUTE_INTERVAL, JSON.stringify(value));
     }
 
     listen(callback) {
@@ -167,9 +143,7 @@ export class Settings {
             Settings.SHOW_TITLE,
             Settings.SHOW_PLAYLIST,
             Settings.SHOW_SETTINGS,
-            Settings.SHOW_MEME,
             Settings.REPEAT,
-            Settings.MUTE_INTERVAL,
         ];
     }
 }
@@ -219,8 +193,6 @@ export class CtrlEvent {
     static NEXT = 'next';
     static PLAYPAUSE = 'playpause';
     static VOLUMECHANGE = 'volumeChange';
-    static MUTE = 'mute';
-    static DND = 'dnd';
     static SYNCALL = 'syncAll';
     static PLAYSTATE = 'playState';
     static VOLUMESTATE = 'volumeState';

@@ -18,7 +18,7 @@
 
 <script>
 import Materialize from "materialize-css";
-import {API} from "../../common/utils";
+import {API} from "../../../common/utils.js";
 
 export default {
   data() {

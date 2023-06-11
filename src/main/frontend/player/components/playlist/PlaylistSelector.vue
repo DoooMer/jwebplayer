@@ -6,7 +6,7 @@
 </template>
 
 <script>
-import {API} from "../../common/utils";
+import {API} from "../../../common/utils.js";
 import Materialize from "materialize-css";
 
 export default {
