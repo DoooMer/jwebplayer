@@ -14,7 +14,7 @@ export default defineConfig({
         }
     },
     build: {
-        manifest: false,
+        manifest: true,
         outDir: '../resources/static/player',
         emptyOutDir: true,
         rollupOptions: {
