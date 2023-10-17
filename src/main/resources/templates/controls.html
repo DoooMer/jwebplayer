@@ -31,7 +31,7 @@
 </head>
 <body>
 <div th:replace="fragments/player::controls"></div>
-<script type="module" src="http://localhost:8090/@vite/client"></script>
-<script type="module" src="http://localhost:8090/controls/main.js"></script>
+<script type="module" th:if="${@viteService.createScriptUrl('@vite/client')} != null" th:src="${@viteService.createScriptUrl('@vite/client')}"></script>
+<script type="module" th:src="${@viteService.createScriptUrl('controls/main.js')}"></script>
 </body>
 </html>

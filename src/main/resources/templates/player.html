@@ -85,7 +85,7 @@
 </head>
 <body>
 <div th:replace="fragments/player::player"></div>
-<script type="module" th:src="${@viteService.createScriptUrl('@vite/client')}"></script>
+<script type="module" th:if="${@viteService.createScriptUrl('@vite/client')} != null" th:src="${@viteService.createScriptUrl('@vite/client')}"></script>
 <script type="module" th:src="${@viteService.createScriptUrl('player/main.js')}"></script>
 </body>
 </html>
