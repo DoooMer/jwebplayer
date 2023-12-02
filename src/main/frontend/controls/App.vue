@@ -108,6 +108,12 @@ export default {
       this.trackId = id;
     },
     handleCtrl(data) {
+      console.debug("Handle control:", data);
+
+      if (data == null) {
+        return;
+      }
+
       switch (data.action) {
         case CtrlEvent.PLAYSTATE:
           this.playState = data.value;
@@ -161,8 +167,8 @@ export default {
       </p>
       <p>Всего треков: {{ tracksTotal }}</p>
       <div>
-        <p>Громкость ({{ volume.toFixed(4) }})</p>
-        <input type="range" v-model="volume" min="0.0001" max="1" step="0.001"/>
+        <p>Громкость ({{ volume.toFixed(3) }})</p>
+        <input type="number" v-model="volume" min="0.0" max="1" step="0.01"/>
       </div>
       <div>
         <button @click.prevent="" class="btn-flat waves-effect waves-teal btn-large">

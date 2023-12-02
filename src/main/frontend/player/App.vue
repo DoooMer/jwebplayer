@@ -1,6 +1,6 @@
 <script>
 import Materialize from 'materialize-css';
-import {Signals, Settings, API, CtrlEvent} from "../common/utils";
+import {Signals, Settings, API, CtrlEvent, playpause, volumeChange} from "../common/utils";
 import PlayerTrackTitle from "./components/player/PlayerTrackTitle.vue";
 import PlayerButtonPrev from "./components/player/PlayerButtonPrev.vue";
 import PlayerButtonNext from "./components/player/PlayerButtonNext.vue";
@@ -236,7 +236,7 @@ export default {
           .catch(console.error);
     },
     handleCtrl(data) {
-      console.debug(data);
+      console.debug("Handle control:", data);
 
       switch (data.action) {
         case CtrlEvent.NEXT:
@@ -251,8 +251,9 @@ export default {
                 .then(_ => {
                   console.log('Start playing remotely.');
                 })
-                .catch(() => {
+                .catch(e => {
                   console.log('Can\'t start playing remotely.');
+                  console.debug(e);
                 });
           }
 
