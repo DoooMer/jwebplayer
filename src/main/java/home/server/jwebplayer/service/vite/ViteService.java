@@ -1,21 +1,20 @@
 package home.server.jwebplayer.service.vite;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import home.server.jwebplayer.config.ViteProperties;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.io.InputStreamReader;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Сервис интеграции с vite.
@@ -24,6 +23,7 @@ import java.util.stream.Stream;
  * - путь из манифеста production сборки
  */
 @Component
+@Slf4j
 public class ViteService
 {
     /**
@@ -44,6 +44,8 @@ public class ViteService
         }
 
         this.properties = properties;
+
+        log.info("Loading vite configuration (" + properties.manifestPath() + ", " + properties.host() + ")");
     }
 
     public String createScriptUrl(String script)
@@ -54,28 +56,31 @@ public class ViteService
     }
 
     @PostConstruct
-    public void loadManifest() throws IOException, URISyntaxException
+    public void loadManifest() throws IOException
     {
 
         if (properties.manifestPath() == null || properties.manifestPath().length() == 0) {
             return;
         }
 
-        var path = Paths.get(Objects.requireNonNull(getClass().getClassLoader()
-                .getResource(properties.manifestPath() + "manifest.json")).toURI());
+        var inputStream = getClass().getResourceAsStream("/" + properties.manifestPath().trim() + "manifest.json");
 
-        Stream<String> lines = Files.lines(path);
-        var json = lines.collect(Collectors.joining("\n"));
-        lines.close();
+        if (inputStream == null) {
+            log.error("Manifest file access error (path: /" + properties.manifestPath().trim() + "manifest.json)");
+            return;
+        }
 
-        var mapper = new ObjectMapper();
-        manifest = mapper.readValue(json, new TypeReference<>()
+        var reader = new BufferedReader(new InputStreamReader(inputStream));
+        var json = reader.lines().collect(Collectors.joining("\n"));
+
+        manifest = (new ObjectMapper()).readValue(json, new TypeReference<>()
         {
         });
     }
 
     /**
      * Получение ссылки на файл через манифест
+     *
      * @param script Относительный путь к файлу
      * @return Ссылка на файл
      */
@@ -95,6 +100,7 @@ public class ViteService
 
     /**
      * Получение ссылки на файл с хостом vite
+     *
      * @param script Относительный путь к файлу
      * @return Ссылка на файл
      */
@@ -103,6 +109,7 @@ public class ViteService
         return properties.host() != null ? properties.host() + "/" + script : null;
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     private static class FileEntry
     {
         public List<String> css;
