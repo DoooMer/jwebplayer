@@ -95,9 +95,11 @@ public class DirectoryWatcher implements Runnable
 
                 if (event.kind().equals(ENTRY_DELETE)) {
                     // ...
+                    log.info("Path {} was deleted", filePath);
                     listener.onDeleted(filePath);
                 } else if (event.kind().equals(ENTRY_CREATE)) {
                     // ...
+                    log.info("Path {} was created", filePath);
                     listener.onCreated(filePath);
                 }
 

@@ -75,6 +75,22 @@ public class PlaylistService
         return playlistTrackRepository.findAllByPlaylistId(playlist.getId());
     }
 
+    public void addTrackToDefaultPlaylist(Track track)
+    {
+        var defaultPlaylist = findDefaultPlaylist();
+
+        PlaylistTrack playlistTrack = new PlaylistTrack();
+        playlistTrack.setPlaylist(defaultPlaylist);
+        playlistTrack.setTrack(track);
+
+        playlistTrackRepository.save(playlistTrack);
+    }
+
+    public void delete(Track track)
+    {
+        playlistTrackRepository.deleteAll(playlistTrackRepository.findAllByTrackId(track.getId()));
+    }
+
     private Playlist findDefaultPlaylist()
     {
         return playlistRepository.findByName(DEFAULT_PLAYLIST_NAME).orElseGet(() -> {

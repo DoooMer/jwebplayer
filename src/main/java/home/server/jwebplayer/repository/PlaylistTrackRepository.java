@@ -11,4 +11,6 @@ import java.util.UUID;
 public interface PlaylistTrackRepository extends CrudRepository<PlaylistTrack, UUID>
 {
     List<PlaylistTrack> findAllByPlaylistId(UUID playlistId);
+
+    List<PlaylistTrack> findAllByTrackId(String trackId);
 }
