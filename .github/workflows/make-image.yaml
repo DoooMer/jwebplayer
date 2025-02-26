@@ -17,9 +17,15 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
+          cache-dependency-path: src/main/frontend/package-lock.json
+
+      - name: Install Node dependencies
+        working-directory: src/main/frontend
+        run: npm ci
 
       - name: Build frontend
-        run: cd src/main/frontend && npm ci && npm run build
+        working-directory: src/main/frontend
+        run: npm run build
 
       - name: Set up JDK 17
         uses: actions/setup-java@v3
