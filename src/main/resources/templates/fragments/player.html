@@ -643,11 +643,13 @@
                 if (!currentPlaylist) return;
                 const tracks = playlists[currentPlaylist];
                 if (index < 0 || index >= tracks.length) return;
+                if (audio && audio.played) audio.pause();
 
                 currentTrackIndex = index;
                 const track = tracks[index];
                 trackTitleEl.textContent = track.name;
                 trackTitleEl.classList.remove('empty');
+                playAudio(track.downloadUrl);
                 btnPlay.querySelector('i').textContent = 'pause';
                 isPlaying = true;
 
@@ -806,13 +808,26 @@
                 if (tracksListContainerEl) tracksListContainerEl.style.display = display;
             }
 
+            function playAudio(url) {
+                if (audio) {
+                    audio.src = url;
+                    return;
+                }
+
+                audio = new Audio(url);
+                audio.addEventListener('canplay', () => {
+                    audio.play();
+                });
+            }
+
             playlistSelectEl.addEventListener('change', function() {
                 currentPlaylist = this.value;
                 currentTrackIndex = -1;
                 trackTitleEl.textContent = 'Выберите трек';
                 trackTitleEl.classList.add('empty');
-                btnPlay.querySelector('i').textContent = 'play_arrow';
-                isPlaying = false;
+                // TODO возможно не стоит останавливать воспроизведение во время смены плейлиста
+                // btnPlay.querySelector('i').textContent = 'play_arrow';
+                // isPlaying = false;
                 loadTracksForPlaylist(currentPlaylist);
             });
 
@@ -822,11 +837,17 @@
                 if (tracks.length === 0) return;
 
                 if (currentTrackIndex < 0) {
+                    // выбор первого трека
                     selectTrack(0);
                 } else {
+                    // переключение состояния
                     isPlaying = !isPlaying;
                     btnPlay.querySelector('i').textContent = isPlaying ? 'pause' : 'play_arrow';
                 }
+
+                audio && audio.paused
+                    ? audio.play()
+                    : audio.pause();
             });
 
             btnPrev.addEventListener('click', function() {
