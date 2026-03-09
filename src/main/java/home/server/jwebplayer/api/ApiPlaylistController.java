@@ -200,11 +200,6 @@ public class ApiPlaylistController
     {
         private PlaylistTrack playlistTrack;
 
-        public UUID getPlaylistId()
-        {
-            return playlistTrack.getPlaylist().getId();
-        }
-
         public String getId()
         {
             return playlistTrack.getTrack().getId();
@@ -215,18 +210,22 @@ public class ApiPlaylistController
             return playlistTrack.getTrack().getName();
         }
 
+        public String getDirectory()
+        {
+            return playlistTrack.getTrack().getDirectory();
+        }
+
         public String getDownloadUrl()
         {
             return "/download/" + playlistTrack.getTrack().getId();
         }
     }
 
+    @Getter
     private static class ApiListTracksDTO
     {
-        @Getter
         private final List<ApiPlaylistTrackDTO> playlistTracks;
 
-        @Getter
         private final int total;
 
         private ApiListTracksDTO(List<ApiPlaylistTrackDTO> playlistTracks)

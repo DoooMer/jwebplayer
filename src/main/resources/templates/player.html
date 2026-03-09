@@ -1,91 +1,111 @@
 <!DOCTYPE html>
-<html lang="ru" xmlns:th="https://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html lang="ru" xmlns:th="https://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
-    <title>Web audio player 3</title>
-    <link th:replace="fragments/materialize::css">
-    <link th:replace="fragments/materialize::font">
-<!--    <link rel="stylesheet" href="/js/assets/main-fc5f319f.css">-->
-    <style>
-        body {
-            font-family: monospace;
-        }
-
-        #player {
-            width: 100%;
-        }
-
-        .frame {
-            display: flex;
-            flex-direction: column;
-            height: 70vh;
-            margin: 0 10px;
-        }
-
-        .frame li:first-child {
-            margin-top: 0;
-        }
-
-        .frame li:last-child {
-            margin-bottom: 0;
-        }
-
-        .frame a {
-            display: block;
-            padding: 10px;
-        }
-
-        .frame section {
-            position: relative;
-        }
-
-        .frame section .track-title {
-            margin-right: 50px;
-            padding: 10px;
-            cursor: pointer;
-        }
-
-        .frame section .track-actions {
-            display: none;
-            margin-left: 5px;
-            margin-right: 10px;
-            position: absolute;
-            right: 0;
-            top: 9px;
-            cursor: pointer;
-        }
-
-        .frame li:hover .track-actions {
-            display: inline-block;
-        }
-
-        .frame li:hover {
-            background-color: #e0f2f1;
-        }
-
-        .scroll {
-            flex: 0 1 100%;
-            border: none;
-            overflow-y: auto;
-            overflow-style: marquee-line;
-        }
-
-        .active {
-            color: #F44336;
-        }
-
-        .btn-block {
-            width: 100%;
-        }
-
-        .btn.hover-teal:hover {
-            background-color: #e0f2f1;
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Веб аудиоплеер</title>
+    <th:block th:replace="fragments/materialize::font"></th:block>
+    <th:block th:replace="fragments/materialize::css"></th:block>
+    <th:block th:replace="fragments/player::css"></th:block>
 </head>
+
 <body>
-<div th:replace="fragments/player::player"></div>
-<script type="module" th:if="${@viteService.createScriptUrl('@vite/client')} != null" th:src="${@viteService.createScriptUrl('@vite/client')}"></script>
-<script type="module" th:src="${@viteService.createScriptUrl('player/main.js')}"></script>
+<div class="player-container">
+    <!-- Управление воспроизведением -->
+    <div class="player-controls">
+        <div class="track-title empty" id="trackTitle">Выберите трек</div>
+        <div class="controls-row">
+            <button class="btn-control" id="btnPrev" title="Предыдущий трек">
+                <i class="material-icons">skip_previous</i>
+            </button>
+            <button class="btn-control play-pause" id="btnPlay" title="Воспроизвести">
+                <i class="material-icons">play_arrow</i>
+            </button>
+            <button class="btn-control" id="btnNext" title="Следующий трек">
+                <i class="material-icons">skip_next</i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Выбор плейлиста -->
+    <div class="playlist-section">
+        <div class="playlist-row">
+            <div class="input-field">
+                <select id="playlistSelect">
+<!--                    <option value="" disabled>Выберите плейлист</option>-->
+                    <option value="favorites" selected>Избранное</option>
+                    <option value="chill">Chill</option>
+                    <option value="workout">Тренировка</option>
+                </select>
+                <label>Плейлист</label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Список треков -->
+    <div class="tracks-list">
+        <ul class="collection" id="tracksList">
+            <li class="collection-item">
+                <span class="track-number">—</span>
+                <div class="track-main">
+                    <span class="track-name">Выберите плейлист</span>
+                </div>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<!-- Плавающая кнопка настроек -->
+<button class="fab-settings btn-floating btn-large waves-effect waves-light" id="btnSettings" title="Настройки">
+    <i class="material-icons">settings</i>
+</button>
+
+<!-- Модальное окно настроек -->
+<div id="modalSettings" class="modal">
+    <div class="modal-content">
+        <h4>Настройки</h4>
+
+        <div class="settings-section">
+            <h5>Плейлисты</h5>
+            <ul id="settingsPlaylistsList" class="collection settings-playlists-list"></ul>
+            <div class="input-field">
+                <input type="text" id="settingsNewPlaylistName">
+                <label for="settingsNewPlaylistName">Новый плейлист</label>
+            </div>
+            <button class="btn waves-effect waves-light" id="settingsAddPlaylistBtn">
+                <i class="material-icons left">add</i>Добавить плейлист
+            </button>
+        </div>
+
+        <div class="settings-section">
+            <h5>Отображение</h5>
+            <div class="switch">
+                <label>
+                    Скрыть
+                    <input type="checkbox" id="toggleMainView" checked>
+                    <span class="lever"></span>
+                    Показать
+                </label>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно добавления трека в плейлист -->
+<div id="modalAddToPlaylist" class="modal">
+    <div class="modal-content">
+        <h4>Добавить в плейлист</h4>
+        <p class="modal-subtitle">Выберите плейлист, в который добавить трек.</p>
+        <ul id="addToPlaylistsList" class="collection add-playlists-list"></ul>
+    </div>
+    <div class="modal-footer">
+        <button class="btn-flat waves-effect" id="addToPlaylistCancelBtn">Отмена</button>
+    </div>
+</div>
+
+<script th:replace="fragments/materialize::js"></script>
+<script th:replace="fragments/player::js"></script>
 </body>
+
 </html>

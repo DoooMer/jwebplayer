@@ -1,7 +1,893 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" xmlns:th="https://www.thymeleaf.org">
+<head>
+    <title></title>
+    <style th:fragment="css">
+        :root {
+            --bg-dark: #0d1117;
+            --bg-card: #161b22;
+            --accent: #58a6ff;
+            --accent-hover: #79b8ff;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+        }
+
+        body {
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            font-family: 'Outfit', sans-serif;
+            min-height: 100vh;
+        }
+
+        .player-container {
+            max-width: 960px; /* 720 */
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        /* Управление воспроизведением */
+        .player-controls {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 1.5rem 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        .track-title {
+            font-size: 1.25rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+            text-align: center;
+            color: var(--text-primary);
+        }
+
+        .track-title.empty {
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        .controls-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-control {
+            background: transparent !important;
+            color: var(--accent) !important;
+            border: none;
+            padding: 0.5rem;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+
+        .btn-control:hover {
+            color: var(--accent-hover) !important;
+            background: rgba(88, 166, 255, 0.15) !important;
+        }
+
+        .btn-control i {
+            font-size: 2rem;
+        }
+
+        .btn-control.play-pause i {
+            font-size: 3rem;
+        }
+
+        /* Выбор плейлиста */
+        .playlist-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .playlist-section label {
+            color: var(--text-secondary) !important;
+            font-size: 0.875rem;
+        }
+
+        .playlist-section .select-wrapper input.select-dropdown {
+            color: var(--text-primary) !important;
+            border-bottom: 1px solid var(--text-secondary) !important;
+        }
+
+        .playlist-section .dropdown-content li span {
+            color: var(--text-primary);
+        }
+
+        .playlist-section .caret {
+            fill: var(--text-secondary);
+        }
+
+        .playlist-section .dropdown-content {
+            background: var(--bg-card) !important;
+        }
+
+        .playlist-section .dropdown-content li:hover,
+        .playlist-section .dropdown-content li.active {
+            background: rgba(88, 166, 255, 0.15) !important;
+        }
+
+        .playlist-row {
+            display: flex;
+            align-items: flex-end;
+            gap: 0.75rem;
+        }
+
+        .playlist-row .input-field {
+            flex: 1;
+        }
+
+        .btn-create-playlist {
+            background: var(--accent) !important;
+            color: var(--bg-dark) !important;
+            padding: 0 1.25rem;
+            height: 45px;
+            line-height: 45px;
+            border-radius: 8px;
+        }
+
+        .btn-create-playlist:hover {
+            background: var(--accent-hover) !important;
+        }
+
+        /* Список треков */
+        .tracks-list {
+            background: var(--bg-card);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        .tracks-list .collection {
+            border: none;
+        }
+
+        .tracks-list .collection-item {
+            background: transparent !important;
+            border-bottom: 1px solid rgba(139, 148, 158, 0.2) !important;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 1.25rem;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .tracks-list .collection-item:last-child {
+            border-bottom: none !important;
+        }
+
+        .tracks-list .collection-item:hover {
+            background: rgba(88, 166, 255, 0.08) !important;
+        }
+
+        .tracks-list .collection-item.playing {
+            background: rgba(88, 166, 255, 0.12) !important;
+            border-left: 3px solid var(--accent);
+        }
+
+        .track-number {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            min-width: 1.5rem;
+        }
+
+        .track-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .track-name {
+            font-weight: 500;
+        }
+
+        .track-dir {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 0.2rem;
+        }
+
+        .btn-add {
+            background: transparent !important;
+            color: var(--text-secondary) !important;
+            border: none;
+            padding: 0.5rem;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+
+        .btn-add:hover {
+            color: var(--accent) !important;
+            background: rgba(88, 166, 255, 0.15) !important;
+        }
+
+        .btn-add i {
+            font-size: 1.25rem;
+        }
+
+        /* Плавающая кнопка настроек */
+        .fab-settings {
+            position: fixed;
+            right: 24px;
+            bottom: 24px;
+            background: var(--accent) !important;
+            color: var(--bg-dark) !important;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+        }
+
+        .fab-settings:hover {
+            background: var(--accent-hover) !important;
+        }
+
+        /* Модальные окна (общий стиль, как на главном экране) */
+        .modal {
+            background: transparent;
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+        }
+
+        .modal h4 {
+            margin-top: 0;
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+
+        .modal .input-field input {
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--text-secondary);
+        }
+
+        .modal .input-field input:focus {
+            border-bottom: 1px solid var(--accent);
+            box-shadow: 0 1px 0 0 var(--accent);
+        }
+
+        .modal .input-field label {
+            color: var(--text-secondary);
+        }
+
+        .modal .btn {
+            background: var(--accent);
+            color: var(--bg-dark);
+        }
+
+        .modal .btn:hover {
+            background: var(--accent-hover);
+        }
+
+        .modal .switch label {
+            color: var(--text-secondary);
+        }
+
+        .modal .switch label .lever {
+            background-color: rgba(88, 166, 255, 0.3);
+        }
+
+        .modal .switch label input[type=checkbox]:checked + .lever {
+            background-color: rgba(88, 166, 255, 0.5);
+        }
+
+        .modal .switch label input[type=checkbox]:checked + .lever:after {
+            background-color: var(--accent);
+        }
+
+        .modal .modal-footer {
+            background: var(--bg-card);
+            border-top: 1px solid rgba(139, 148, 158, 0.3);
+            /* padding: 0.75rem 1.5rem; */
+            border-radius: 0 0 16px 16px;
+        }
+
+        .modal  .modal-footer .btn,
+        .modal  .modal-footer .btn-flat {
+            color: var(--text-secondary);
+        }
+
+        .modal .modal-footer .btn-flat:hover {
+            background: rgba(88, 166, 255, 0.12);
+            color: var(--accent);
+        }
+
+        .settings-section {
+            margin-top: 1.5rem;
+        }
+
+        .settings-section h5 {
+            font-size: 1.1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .settings-playlists-list.collection {
+            border: none;
+            background: transparent;
+        }
+
+        .settings-playlists-list .collection-item {
+            background: transparent;
+            border-bottom: 1px solid rgba(139, 148, 158, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0.25rem;
+        }
+
+        .settings-playlists-list .collection-item:last-child {
+            border-bottom: none;
+        }
+
+        .settings-playlists-list .playlist-name {
+            font-weight: 500;
+        }
+
+        .settings-playlists-list .playlist-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .settings-playlists-list .btn-edit-playlist,
+        .settings-playlists-list .btn-delete-playlist {
+            padding: 0 0.5rem;
+            color: var(--text-secondary);
+        }
+
+        .settings-playlists-list .btn-edit-playlist:hover,
+        .settings-playlists-list .btn-delete-playlist:hover {
+            color: var(--accent);
+        }
+
+        .settings-playlists-list .btn-delete-playlist:hover {
+            color: #f44336;
+        }
+
+        .settings-playlists-list .btn-edit-playlist i,
+        .settings-playlists-list .btn-delete-playlist i {
+            font-size: 1.2rem;
+        }
+
+        .settings-playlists-list .playlist-edit-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .settings-playlists-list .playlist-edit-row input {
+            flex: 1;
+            margin: 0;
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        .settings-playlists-list .playlist-edit-row input:focus {
+            border-bottom: 1px solid var(--accent);
+            box-shadow: none;
+        }
+
+        .settings-playlists-list .btn-save-playlist,
+        .settings-playlists-list .btn-cancel-edit {
+            padding: 0 0.5rem;
+            min-width: auto;
+        }
+
+        .settings-playlists-list .btn-cancel-edit {
+            color: var(--text-secondary);
+        }
+
+        .add-playlists-list.collection {
+            border: none;
+            background: transparent;
+        }
+
+        .add-playlists-list .collection-item {
+            background: transparent;
+            border-bottom: 1px solid rgba(139, 148, 158, 0.2);
+            cursor: pointer;
+            padding: 0.75rem 0.25rem;
+        }
+
+        .add-playlists-list .collection-item:last-child {
+            border-bottom: none;
+        }
+
+        .add-playlists-list .collection-item:hover {
+            background: rgba(88, 166, 255, 0.1);
+        }
+
+        .add-playlists-list .playlist-name {
+            font-weight: 500;
+        }
+
+        .modal-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: -0.25rem;
+            margin-bottom: 0.75rem;
+        }
+    </style>
+    <script th:fragment="js">
+        document.addEventListener('DOMContentLoaded', function() {
+            // Инициализация select
+            const selects = document.querySelectorAll('select');
+            M.FormSelect.init(selects);
+
+            // Инициализация модальных окон
+            const settingsModalEl = document.getElementById('modalSettings');
+            const settingsModalInstance = M.Modal.init(settingsModalEl);
+            const addToModalEl = document.getElementById('modalAddToPlaylist');
+            const addToModalInstance = M.Modal.init(addToModalEl);
+
+            // Данные плейлистов
+            let playlists = {};
+
+            const trackTitleEl = document.getElementById('trackTitle');
+            const tracksListEl = document.getElementById('tracksList');
+            const playlistSelectEl = document.getElementById('playlistSelect');
+            const playlistSectionEl = document.querySelector('.playlist-section');
+            const tracksListContainerEl = document.querySelector('.tracks-list');
+
+            const btnPlay = document.getElementById('btnPlay');
+            const btnPrev = document.getElementById('btnPrev');
+            const btnNext = document.getElementById('btnNext');
+
+            const btnSettings = document.getElementById('btnSettings');
+            const settingsPlaylistsListEl = document.getElementById('settingsPlaylistsList');
+            const settingsNewPlaylistNameEl = document.getElementById('settingsNewPlaylistName');
+            const settingsAddPlaylistBtn = document.getElementById('settingsAddPlaylistBtn');
+            const toggleMainViewEl = document.getElementById('toggleMainView');
+            const addToPlaylistsListEl = document.getElementById('addToPlaylistsList');
+            const addToPlaylistCancelBtn = document.getElementById('addToPlaylistCancelBtn');
+
+            let currentPlaylist = null; // ид выбранного плейлиста, uuid
+            let currentTrackIndex = -1;
+            let isPlaying = false;
+            let showMainLists = true;
+            let pendingTrackToAdd = null;
+            let audio = null;
+
+            function setPlaylistOptions(list) {
+                playlistSelectEl.innerHTML = '';
+
+                list.forEach((p, index) => {
+                    const option = document.createElement('option');
+                    option.value = p.id;
+                    option.textContent = p.name;
+                    playlistSelectEl.appendChild(option);
+                    if (!playlists[p.id]) {
+                        playlists[p.id] = [];
+                    }
+                    if (index === 0) {
+                        currentPlaylist = p.id;
+                    }
+                });
+
+                if (currentPlaylist) {
+                    playlistSelectEl.value = currentPlaylist;
+                }
+
+                const selectInstance = M.FormSelect.getInstance(playlistSelectEl);
+                if (selectInstance) {
+                    selectInstance.destroy();
+                }
+                M.FormSelect.init(playlistSelectEl);
+
+                if (currentPlaylist) {
+                    trackTitleEl.textContent = 'Выберите трек';
+                    trackTitleEl.classList.add('empty');
+                    btnPlay.querySelector('i').textContent = 'play_arrow';
+                    isPlaying = false;
+                    currentTrackIndex = -1;
+                    loadTracksForPlaylist(currentPlaylist);
+                }
+            }
+
+            function loadPlaylistsFromApi() {
+                fetch('/api/playlists')
+                    .then((res) => {
+                        if (!res.ok) throw new Error('Failed to load playlists');
+                        return res.json();
+                    })
+                    .then((data) => {
+                        if (!data || !Array.isArray(data.playlists) || data.playlists.length === 0) {
+                            setPlaylistOptions([]);
+                        } else {
+                            setPlaylistOptions(data.playlists);
+                        }
+                        renderSettingsPlaylists();
+                    })
+                    .catch(() => {
+                        setPlaylistOptions([]);
+                        renderSettingsPlaylists();
+                    });
+            }
+
+            function loadTracksForPlaylist(playlistId) {
+                if (!playlistId) return;
+
+                tracksListEl.innerHTML = `
+                    <li class="collection-item">
+                        <span class="track-number">…</span>
+                        <div class="track-main">
+                            <span class="track-name">Загрузка треков…</span>
+                        </div>
+                    </li>
+                `;
+
+                fetch(`/api/playlists/${encodeURIComponent(playlistId)}/tracks`)
+                    .then((res) => {
+                        if (!res.ok) throw new Error('Failed to load tracks');
+                        return res.json();
+                    })
+                    .then((data) => {
+                        const tracks = (data && Array.isArray(data.playlistTracks)) ? data.playlistTracks : [];
+                        playlists[playlistId] = tracks;
+                        currentTrackIndex = -1;
+                        isPlaying = false;
+                        btnPlay.querySelector('i').textContent = 'play_arrow';
+                        trackTitleEl.textContent = 'Выберите трек';
+                        trackTitleEl.classList.add('empty');
+                        renderTracks(playlistId);
+                    })
+                    .catch(() => {
+                        playlists[playlistId] = playlists[playlistId] || [];
+                        currentTrackIndex = -1;
+                        isPlaying = false;
+                        btnPlay.querySelector('i').textContent = 'play_arrow';
+                        trackTitleEl.textContent = 'Выберите трек';
+                        trackTitleEl.classList.add('empty');
+                        renderTracks(playlistId);
+                    });
+            }
+
+            function renderTracks(playlistId) {
+                const tracks = playlists[playlistId] || [];
+
+                if (!tracks || tracks.length === 0) {
+                    tracksListEl.innerHTML = `
+                        <li class="collection-item">
+                            <span class="track-number">—</span>
+                            <div class="track-main">
+                                <span class="track-name">Нет треков</span>
+                            </div>
+                        </li>
+                    `;
+                    return;
+                }
+
+                tracksListEl.innerHTML = tracks.map((track, i) => `
+                    <li class="collection-item ${i === currentTrackIndex ? 'playing' : ''}" data-index="${i}">
+                        <span class="track-number">${i + 1}</span>
+                        <div class="track-main">
+                            <span class="track-name">${track.name}</span>
+                            <span class="track-dir">${track.directory || ''}</span>
+                        </div>
+                        <button class="btn-add" title="Добавить в плейлист" data-index="${i}"><i class="material-icons">playlist_add</i></button>
+                    </li>
+                `).join('');
+
+                // Обработчики клика по трекам
+                tracksListEl.querySelectorAll('.collection-item[data-index]').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        if (e.target.closest('.btn-add')) return;
+                        currentTrackIndex = parseInt(item.dataset.index);
+                        selectTrack(currentTrackIndex);
+                    });
+                });
+
+                // Обработчики кнопки добавления в плейлист
+                tracksListEl.querySelectorAll('.btn-add[data-index]').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const index = parseInt(btn.dataset.index);
+                        const track = tracks[index];
+                        if (!track) return;
+                        pendingTrackToAdd = { ...track };
+                        renderAddToPlaylistsList();
+                        addToModalInstance.open();
+                    });
+                });
+            }
+
+            function renderAddToPlaylistsList() {
+                addToPlaylistsListEl.innerHTML = '';
+
+                Array.from(playlistSelectEl.options).forEach(option => {
+                    if (!option.value) return; // пропускаем плейсхолдер
+                    const id = option.value;
+                    const name = option.textContent;
+
+                    const li = document.createElement('li');
+                    li.className = 'collection-item';
+                    li.dataset.id = id;
+                    li.innerHTML = `<span class="playlist-name">${name}</span>`;
+
+                    li.addEventListener('click', () => {
+                        if (!pendingTrackToAdd) {
+                            addToModalInstance.close();
+                            return;
+                        }
+
+                        if (!playlists[id]) {
+                            playlists[id] = [];
+                        }
+
+                        playlists[id].push({ ...pendingTrackToAdd });
+
+                        if (currentPlaylist === id) {
+                            renderTracks(id);
+                        }
+
+                        pendingTrackToAdd = null;
+                        addToModalInstance.close();
+                    });
+
+                    addToPlaylistsListEl.appendChild(li);
+                });
+            }
+
+            function selectTrack(index) {
+                if (!currentPlaylist) return;
+                const tracks = playlists[currentPlaylist];
+                if (index < 0 || index >= tracks.length) return;
+
+                currentTrackIndex = index;
+                const track = tracks[index];
+                trackTitleEl.textContent = track.name;
+                trackTitleEl.classList.remove('empty');
+                btnPlay.querySelector('i').textContent = 'pause';
+                isPlaying = true;
+
+                renderTracks(currentPlaylist);
+            }
+
+            function renderSettingsPlaylists() {
+                settingsPlaylistsListEl.innerHTML = '';
+
+                Array.from(playlistSelectEl.options).forEach(option => {
+                    if (!option.value) return; // пропускаем плейсхолдер
+                    const id = option.value;
+                    const name = option.textContent;
+
+                    const li = document.createElement('li');
+                    li.className = 'collection-item';
+                    li.dataset.id = id;
+                    li.innerHTML = `
+                        <span class="playlist-name">${escapeHtml(name)}</span>
+                        <div class="playlist-actions">
+                            <button class="btn-flat btn-small waves-effect btn-edit-playlist" data-id="${id}" title="Изменить название">
+                                <i class="material-icons">edit</i>
+                            </button>
+                            <button class="btn-flat btn-small waves-effect red-text text-lighten-1 btn-delete-playlist" data-id="${id}" title="Удалить">
+                                <i class="material-icons">delete</i>
+                            </button>
+                        </div>
+                    `;
+                    settingsPlaylistsListEl.appendChild(li);
+                });
+
+                settingsPlaylistsListEl.querySelectorAll('.btn-edit-playlist').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const id = btn.dataset.id;
+                        const li = btn.closest('.collection-item');
+                        const name = playlistSelectEl.querySelector(`option[value="${id}"]`)?.textContent || '';
+                        li.innerHTML = `
+                            <div class="playlist-edit-row">
+                                <input type="text" class="playlist-edit-input" value="${escapeHtml(name)}" maxlength="100">
+                                <button class="btn-flat btn-small waves-effect btn-save-playlist" title="Сохранить">
+                                    <i class="material-icons">check</i>
+                                </button>
+                                <button class="btn-flat btn-small waves-effect btn-cancel-edit" title="Отмена">
+                                    <i class="material-icons">close</i>
+                                </button>
+                            </div>
+                        `;
+                        const input = li.querySelector('.playlist-edit-input');
+                        const saveBtn = li.querySelector('.btn-save-playlist');
+                        const cancelBtn = li.querySelector('.btn-cancel-edit');
+                        input.focus();
+                        input.select();
+
+                        function applyRename() {
+                            const newName = input.value.trim();
+                            if (!newName) return;
+                            const opt = playlistSelectEl.querySelector(`option[value="${id}"]`);
+                            if (opt) opt.textContent = newName;
+                            renderSettingsPlaylists();
+                        }
+
+                        saveBtn.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            applyRename();
+                        });
+                        cancelBtn.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            renderSettingsPlaylists();
+                        });
+                        input.addEventListener('keydown', (e) => {
+                            if (e.key === 'Enter') {
+                                e.preventDefault();
+                                applyRename();
+                            }
+                            if (e.key === 'Escape') {
+                                e.preventDefault();
+                                renderSettingsPlaylists();
+                            }
+                        });
+                    });
+                });
+
+                settingsPlaylistsListEl.querySelectorAll('.btn-delete-playlist').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const id = btn.dataset.id;
+
+                        // удаляем из данных
+                        delete playlists[id];
+
+                        // удаляем option из select
+                        const option = playlistSelectEl.querySelector(`option[value="${id}"]`);
+                        if (option) {
+                            option.remove();
+                        }
+
+                        const selectInstance = M.FormSelect.getInstance(playlistSelectEl);
+                        if (selectInstance) {
+                            selectInstance.destroy();
+                        }
+                        M.FormSelect.init(playlistSelectEl);
+
+                        // если удаляем текущий плейлист
+                        if (currentPlaylist === id) {
+                            currentPlaylist = null;
+                            currentTrackIndex = -1;
+                            trackTitleEl.textContent = 'Выберите трек';
+                            trackTitleEl.classList.add('empty');
+                            btnPlay.querySelector('i').textContent = 'play_arrow';
+                            isPlaying = false;
+                            tracksListEl.innerHTML = `
+                                <li class="collection-item">
+                                    <span class="track-number">—</span>
+                                    <div class="track-main">
+                                        <span class="track-name">Выберите плейлист</span>
+                                    </div>
+                                </li>
+                            `;
+                        }
+
+                        renderSettingsPlaylists();
+                    });
+                });
+            }
+
+            function escapeHtml(str) {
+                const div = document.createElement('div');
+                div.textContent = str;
+                return div.innerHTML;
+            }
+
+            function addSettingsPlaylist(name) {
+                const id = 'playlist_' + Date.now();
+                playlists[id] = [];
+
+                const option = document.createElement('option');
+                option.value = id;
+                option.textContent = name;
+                playlistSelectEl.appendChild(option);
+
+                const selectInstance = M.FormSelect.getInstance(playlistSelectEl);
+                if (selectInstance) {
+                    selectInstance.destroy();
+                }
+                M.FormSelect.init(playlistSelectEl);
+
+                renderSettingsPlaylists();
+            }
+
+            function applyDisplaySettings() {
+                const display = showMainLists ? '' : 'none';
+                if (playlistSectionEl) playlistSectionEl.style.display = display;
+                if (tracksListContainerEl) tracksListContainerEl.style.display = display;
+            }
+
+            playlistSelectEl.addEventListener('change', function() {
+                currentPlaylist = this.value;
+                currentTrackIndex = -1;
+                trackTitleEl.textContent = 'Выберите трек';
+                trackTitleEl.classList.add('empty');
+                btnPlay.querySelector('i').textContent = 'play_arrow';
+                isPlaying = false;
+                loadTracksForPlaylist(currentPlaylist);
+            });
+
+            btnPlay.addEventListener('click', function() {
+                if (!currentPlaylist) return;
+                const tracks = playlists[currentPlaylist];
+                if (tracks.length === 0) return;
+
+                if (currentTrackIndex < 0) {
+                    selectTrack(0);
+                } else {
+                    isPlaying = !isPlaying;
+                    btnPlay.querySelector('i').textContent = isPlaying ? 'pause' : 'play_arrow';
+                }
+            });
+
+            btnPrev.addEventListener('click', function() {
+                if (!currentPlaylist) return;
+                const tracks = playlists[currentPlaylist];
+                if (tracks.length === 0) return;
+
+                const newIndex = currentTrackIndex <= 0 ? tracks.length - 1 : currentTrackIndex - 1;
+                selectTrack(newIndex);
+            });
+
+            btnNext.addEventListener('click', function() {
+                if (!currentPlaylist) return;
+                const tracks = playlists[currentPlaylist];
+                if (tracks.length === 0) return;
+
+                const newIndex = currentTrackIndex >= tracks.length - 1 ? 0 : currentTrackIndex + 1;
+                selectTrack(newIndex);
+            });
+
+            btnSettings.addEventListener('click', function() {
+                renderSettingsPlaylists();
+                toggleMainViewEl.checked = showMainLists;
+                M.updateTextFields();
+                settingsModalInstance.open();
+            });
+
+            addToPlaylistCancelBtn.addEventListener('click', function() {
+                pendingTrackToAdd = null;
+                addToModalInstance.close();
+            });
+
+            settingsAddPlaylistBtn.addEventListener('click', function() {
+                const name = settingsNewPlaylistNameEl.value.trim();
+                if (!name) return;
+                addSettingsPlaylist(name);
+                settingsNewPlaylistNameEl.value = '';
+                M.updateTextFields();
+            });
+
+            settingsNewPlaylistNameEl.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    settingsAddPlaylistBtn.click();
+                }
+            });
+
+            toggleMainViewEl.addEventListener('change', function() {
+                showMainLists = this.checked;
+                applyDisplaySettings();
+            });
+
+            // начальное применение настроек отображения
+            applyDisplaySettings();
+
+            // загрузка плейлистов
+            loadPlaylistsFromApi();
+        });
+    </script>
+</head>
 <body>
-<div th:fragment="player" class="container" id="app"></div>
 <div th:fragment="controls" class="container" id="app"></div>
 </body>
 </html>
