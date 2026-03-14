@@ -818,6 +818,14 @@
                 audio.addEventListener('canplay', () => {
                     audio.play();
                 });
+                audio.addEventListener('pause', () => {
+                    isPlaying = false;
+                    btnPlay.querySelector('i').textContent = 'play_arrow';
+                });
+                audio.addEventListener('play', () => {
+                    isPlaying = true;
+                    btnPlay.querySelector('i').textContent = 'pause';
+                })
             }
 
             playlistSelectEl.addEventListener('change', function() {
