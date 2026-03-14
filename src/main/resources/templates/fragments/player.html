@@ -226,6 +226,20 @@
             background: var(--accent-hover) !important;
         }
 
+        /* Плавающая кнопка громкости */
+        .fab-volume {
+            position: fixed;
+            right: 24px;
+            bottom: 100px;
+            background: var(--accent) !important;
+            color: var(--bg-dark) !important;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+        }
+
+        .fab-volume:hover {
+            background: var(--accent-hover) !important;
+        }
+
         /* Модальные окна (общий стиль, как на главном экране) */
         .modal {
             background: transparent;
@@ -445,10 +459,12 @@
             const btnNext = document.getElementById('btnNext');
 
             const btnSettings = document.getElementById('btnSettings');
+            const btnVolume = document.getElementById('btnVol');
             const settingsPlaylistsListEl = document.getElementById('settingsPlaylistsList');
             const settingsNewPlaylistNameEl = document.getElementById('settingsNewPlaylistName');
             const settingsAddPlaylistBtn = document.getElementById('settingsAddPlaylistBtn');
             const toggleMainViewEl = document.getElementById('toggleMainView');
+            const autoPlayNextEl = document.getElementById('autoPlayNext');
             const addToPlaylistsListEl = document.getElementById('addToPlaylistsList');
             const addToPlaylistCancelBtn = document.getElementById('addToPlaylistCancelBtn');
 
@@ -458,6 +474,9 @@
             let showMainLists = true;
             let pendingTrackToAdd = null;
             let audio = null;
+            let volume = 1;
+            let muted = false;
+            let autoPlayNext = true;
 
             function setPlaylistOptions(list) {
                 playlistSelectEl.innerHTML = '';
@@ -815,6 +834,8 @@
                 }
 
                 audio = new Audio(url);
+                audio.volume = volume;
+                audio.muted = muted;
                 audio.addEventListener('canplay', () => {
                     audio.play();
                 });
@@ -825,7 +846,15 @@
                 audio.addEventListener('play', () => {
                     isPlaying = true;
                     btnPlay.querySelector('i').textContent = 'pause';
-                })
+                });
+                audio.addEventListener('ended', () => {
+                    // Когда трек завершится - включается следующий, если настройка включена
+                    if (autoPlayNext) btnNext.click();
+                });
+            }
+
+            function renderVolumeLvl() {
+                btnVolume.title = 'Громкость ' + parseFloat(String(volume * 100)).toFixed(0) + '%';
             }
 
             playlistSelectEl.addEventListener('change', function() {
@@ -879,6 +908,7 @@
             btnSettings.addEventListener('click', function() {
                 renderSettingsPlaylists();
                 toggleMainViewEl.checked = showMainLists;
+                autoPlayNextEl.checked = autoPlayNext;
                 M.updateTextFields();
                 settingsModalInstance.open();
             });
@@ -906,6 +936,36 @@
             toggleMainViewEl.addEventListener('change', function() {
                 showMainLists = this.checked;
                 applyDisplaySettings();
+            });
+
+            autoPlayNextEl.addEventListener('change', function () {
+                autoPlayNext = this.checked;
+            });
+
+            btnVolume.addEventListener('wheel', e => {
+                volume = e.wheelDeltaY < 0 ? volume + 0.01 : volume - 0.01;
+
+                if (volume > 1) volume = 1;
+
+                if (volume < 0) volume = 0;
+
+                if (audio) {
+                    audio.volume = volume.toFixed(2);
+                }
+
+                renderVolumeLvl();
+                e.preventDefault();
+            });
+
+            btnVolume.addEventListener('click', e => {
+                muted = !muted;
+                this.querySelector('i').textContent = muted ? 'volume_off' : 'volume_up';
+
+                if (audio) {
+                    audio.muted = muted;
+                }
+
+                e.preventDefault();
             });
 
             // начальное применение настроек отображения

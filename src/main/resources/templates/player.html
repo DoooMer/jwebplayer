@@ -33,7 +33,6 @@
         <div class="playlist-row">
             <div class="input-field">
                 <select id="playlistSelect">
-<!--                    <option value="" disabled>Выберите плейлист</option>-->
                     <option value="favorites" selected>Избранное</option>
                     <option value="chill">Chill</option>
                     <option value="workout">Тренировка</option>
@@ -60,6 +59,9 @@
 <button class="fab-settings btn-floating btn-large waves-effect waves-light" id="btnSettings" title="Настройки">
     <i class="material-icons">settings</i>
 </button>
+<button class="fab-volume btn-floating btn-large waves-effect waves-light" id="btnVol" title="Громкость">
+    <i class="material-icons">volume_up</i>
+</button>
 
 <!-- Модальное окно настроек -->
 <div id="modalSettings" class="modal">
@@ -79,13 +81,26 @@
         </div>
 
         <div class="settings-section">
-            <h5>Отображение</h5>
+            <h5>Показать плейлист</h5>
             <div class="switch">
+<!--                <div>Плейлист</div>-->
                 <label>
                     Скрыть
                     <input type="checkbox" id="toggleMainView" checked>
                     <span class="lever"></span>
                     Показать
+                </label>
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <h5>Автоматический переход на следующий трек</h5>
+            <div class="switch">
+                <label>
+                    Нет
+                    <input type="checkbox" id="autoPlayNext" checked>
+                    <span class="lever"></span>
+                    Да
                 </label>
             </div>
         </div>
