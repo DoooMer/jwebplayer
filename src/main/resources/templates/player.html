@@ -26,6 +26,9 @@
                 <i class="material-icons">skip_next</i>
             </button>
         </div>
+        <div class="progress track-timeline">
+            <div class="determinate" style="width: 0" id="timeline"></div>
+        </div>
     </div>
 
     <!-- Выбор плейлиста -->
@@ -83,7 +86,6 @@
         <div class="settings-section">
             <h5>Показать плейлист</h5>
             <div class="switch">
-<!--                <div>Плейлист</div>-->
                 <label>
                     Скрыть
                     <input type="checkbox" id="toggleMainView" checked>
@@ -99,6 +101,18 @@
                 <label>
                     Нет
                     <input type="checkbox" id="autoPlayNext" checked>
+                    <span class="lever"></span>
+                    Да
+                </label>
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <h5>Повтор текущего трека</h5>
+            <div class="switch">
+                <label>
+                    Нет
+                    <input type="checkbox" id="repeatTrack">
                     <span class="lever"></span>
                     Да
                 </label>

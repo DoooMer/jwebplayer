@@ -29,7 +29,7 @@
         .player-controls {
             background: var(--bg-card);
             border-radius: 16px;
-            padding: 1.5rem 2rem;
+            padding: 1.5rem 0;
             margin-bottom: 2rem;
             box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
         }
@@ -38,6 +38,8 @@
             font-size: 1.25rem;
             font-weight: 500;
             margin-bottom: 1rem;
+            margin-left: 2rem;
+            margin-right: 2rem;
             text-align: center;
             color: var(--text-primary);
         }
@@ -75,6 +77,19 @@
 
         .btn-control.play-pause i {
             font-size: 3rem;
+        }
+
+        .track-timeline {
+            background-color: transparent;
+            height: 3px;
+        }
+
+        .track-timeline > .determinate {
+            background-color: var(--accent) !important;
+        }
+
+        .track-timeline:hover {
+            cursor: pointer;
         }
 
         /* Выбор плейлиста */
@@ -248,7 +263,6 @@
         .modal-content {
             background: var(--bg-card);
             color: var(--text-primary);
-            border-radius: 16px;
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
         }
 
@@ -300,8 +314,6 @@
         .modal .modal-footer {
             background: var(--bg-card);
             border-top: 1px solid rgba(139, 148, 158, 0.3);
-            /* padding: 0.75rem 1.5rem; */
-            border-radius: 0 0 16px 16px;
         }
 
         .modal  .modal-footer .btn,
@@ -457,6 +469,7 @@
             const btnPlay = document.getElementById('btnPlay');
             const btnPrev = document.getElementById('btnPrev');
             const btnNext = document.getElementById('btnNext');
+            const timeline = document.getElementById('timeline');
 
             const btnSettings = document.getElementById('btnSettings');
             const btnVolume = document.getElementById('btnVol');
@@ -465,18 +478,20 @@
             const settingsAddPlaylistBtn = document.getElementById('settingsAddPlaylistBtn');
             const toggleMainViewEl = document.getElementById('toggleMainView');
             const autoPlayNextEl = document.getElementById('autoPlayNext');
+            const repeatTrackEl = document.getElementById('repeatTrack');
             const addToPlaylistsListEl = document.getElementById('addToPlaylistsList');
             const addToPlaylistCancelBtn = document.getElementById('addToPlaylistCancelBtn');
 
             let currentPlaylist = null; // ид выбранного плейлиста, uuid
             let currentTrackIndex = -1;
             let isPlaying = false;
-            let showMainLists = true;
+            let showMainLists = true; // настройка: показ плейлиста
             let pendingTrackToAdd = null;
-            let audio = null;
-            let volume = 1;
-            let muted = false;
-            let autoPlayNext = true;
+            let audio = null; // воспроизведение: плеер
+            let volume = 1; // воспроизведение: громкость
+            let muted = false; // воспроизведение: выключение звука
+            let autoPlayNext = true; // настройка: воспроизводить следующий
+            let repeatTrack = false; // настройка: повтор трека
 
             function setPlaylistOptions(list) {
                 playlistSelectEl.innerHTML = '';
@@ -564,10 +579,6 @@
                     .catch(() => {
                         playlists[playlistId] = playlists[playlistId] || [];
                         currentTrackIndex = -1;
-                        isPlaying = false;
-                        btnPlay.querySelector('i').textContent = 'play_arrow';
-                        trackTitleEl.textContent = 'Выберите трек';
-                        trackTitleEl.classList.add('empty');
                         renderTracks(playlistId);
                     });
             }
@@ -848,8 +859,15 @@
                     btnPlay.querySelector('i').textContent = 'pause';
                 });
                 audio.addEventListener('ended', () => {
-                    // Когда трек завершится - включается следующий, если настройка включена
+                    // Включается следующий трек, если настройка включена
                     if (autoPlayNext) btnNext.click();
+                    // Трек повторяется, если настройка включена
+                    if (repeatTrack) audio.play();
+                });
+                // Отображение таймлайна
+                audio.addEventListener('timeupdate', () => {
+                    const progress = (audio.currentTime / audio.duration) * 100;
+                    timeline.style.width = progress + '%';
                 });
             }
 
@@ -860,11 +878,6 @@
             playlistSelectEl.addEventListener('change', function() {
                 currentPlaylist = this.value;
                 currentTrackIndex = -1;
-                trackTitleEl.textContent = 'Выберите трек';
-                trackTitleEl.classList.add('empty');
-                // TODO возможно не стоит останавливать воспроизведение во время смены плейлиста
-                // btnPlay.querySelector('i').textContent = 'play_arrow';
-                // isPlaying = false;
                 loadTracksForPlaylist(currentPlaylist);
             });
 
@@ -909,6 +922,7 @@
                 renderSettingsPlaylists();
                 toggleMainViewEl.checked = showMainLists;
                 autoPlayNextEl.checked = autoPlayNext;
+                repeatTrackEl.checked = repeatTrack;
                 M.updateTextFields();
                 settingsModalInstance.open();
             });
@@ -942,6 +956,10 @@
                 autoPlayNext = this.checked;
             });
 
+            repeatTrackEl.addEventListener('change', function () {
+                repeatTrack = this.checked;
+            });
+
             btnVolume.addEventListener('wheel', e => {
                 volume = e.wheelDeltaY < 0 ? volume + 0.01 : volume - 0.01;
 
@@ -966,6 +984,15 @@
                 }
 
                 e.preventDefault();
+            });
+
+            // Перемотка трека
+            timeline.parentElement.addEventListener('click', e => {
+                if (!audio) return;
+                // где нажато в таймлайне (процент)
+                const point = (e.layerX / timeline.parentElement.clientWidth) * 100;
+                // перемотка
+                audio.currentTime = audio.duration * (point / 100);
             });
 
             // начальное применение настроек отображения
