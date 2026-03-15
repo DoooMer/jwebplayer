@@ -25,6 +25,15 @@
             padding: 2rem 1rem;
         }
 
+        input[type=text]:focus:not([readonly]) {
+            border-bottom: 1px solid var(--accent) !important;
+            box-shadow: 0 1px 0 0 var(--accent) !important;
+        }
+
+        input[type=text]:focus:not([readonly])+label {
+            color: var(--accent) !important;
+        }
+
         /* Управление воспроизведением */
         .player-controls {
             background: var(--bg-card);
@@ -277,11 +286,6 @@
             border-bottom: 1px solid var(--text-secondary);
         }
 
-        .modal .input-field input:focus {
-            border-bottom: 1px solid var(--accent);
-            box-shadow: 0 1px 0 0 var(--accent);
-        }
-
         .modal .input-field label {
             color: var(--text-secondary);
         }
@@ -371,7 +375,8 @@
 
         .settings-playlists-list .btn-edit-playlist:hover,
         .settings-playlists-list .btn-delete-playlist:hover {
-            color: var(--accent);
+            color: var(--bg-dark);
+            background-color: var(--accent-hover);
         }
 
         .settings-playlists-list .btn-delete-playlist:hover {
@@ -408,6 +413,13 @@
         .settings-playlists-list .btn-cancel-edit {
             padding: 0 0.5rem;
             min-width: auto;
+            color: green;
+        }
+
+        .settings-playlists-list .btn-save-playlist:hover,
+        .settings-playlists-list .btn-cancel-edit:hover {
+            background-color: var(--accent-hover);
+            color: var(--bg-dark);
         }
 
         .settings-playlists-list .btn-cancel-edit {
@@ -655,18 +667,39 @@
                             playlists[id] = [];
                         }
 
-                        playlists[id].push({ ...pendingTrackToAdd });
-
-                        if (currentPlaylist === id) {
-                            renderTracks(id);
-                        }
-
-                        pendingTrackToAdd = null;
-                        addToModalInstance.close();
+                        addTrackToPlaylist(pendingTrackToAdd.id, id);
                     });
 
                     addToPlaylistsListEl.appendChild(li);
                 });
+            }
+
+            function addTrackToPlaylist(trackId, playlistId) {
+                fetch(`/api/playlists/${playlistId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ trackId })
+                })
+                    .then((res) => {
+                        if (!res.ok) throw new Error('Failed to add track to playlist');
+                        return res.json();
+                    })
+                    .then((data) => {
+                        if (!playlists[playlistId]) {
+                            playlists[playlistId] = [];
+                        }
+
+                        playlists[playlistId].push({ ...data });
+                    })
+                    .catch(() => {
+                        M.toast({html: 'Ошибка добавления трека в плейлист'});
+                    })
+                    .finally(() => {
+                        pendingTrackToAdd = null;
+                        addToModalInstance.close();
+                    });
             }
 
             function selectTrack(index) {
@@ -738,9 +771,28 @@
                         function applyRename() {
                             const newName = input.value.trim();
                             if (!newName) return;
-                            const opt = playlistSelectEl.querySelector(`option[value="${id}"]`);
-                            if (opt) opt.textContent = newName;
-                            renderSettingsPlaylists();
+
+                            fetch(`/api/playlists/${id}`, {
+                                method: 'PATCH',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({ name: newName })
+                            })
+                                .then((res) => {
+                                    if (!res.ok) throw new Error('Failed to change playlist\'s name');
+                                    return res.json();
+                                })
+                                .then((data) => {
+                                    const opt = playlistSelectEl.querySelector(`option[value="${data.id}"]`);
+                                    if (opt) opt.textContent = data.name;
+                                    M.FormSelect.init(playlistSelectEl);
+                                    renderSettingsPlaylists();
+                                })
+                                .catch(() => {
+                                    M.toast({html: 'Не удалось обновить название плейлиста'});
+                                });
+
                         }
 
                         saveBtn.addEventListener('click', (e) => {
@@ -815,21 +867,36 @@
             }
 
             function addSettingsPlaylist(name) {
-                const id = 'playlist_' + Date.now();
-                playlists[id] = [];
+                fetch(`/api/playlists`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name: name })
+                })
+                    .then((res) => {
+                        if (!res.ok) throw new Error('Failed to save playlist');
+                        return res.json();
+                    })
+                    .then((data) => {
+                        playlists[data.id] = [];
 
-                const option = document.createElement('option');
-                option.value = id;
-                option.textContent = name;
-                playlistSelectEl.appendChild(option);
+                        const option = document.createElement('option');
+                        option.value = data.id;
+                        option.textContent = data.name;
+                        playlistSelectEl.appendChild(option);
 
-                const selectInstance = M.FormSelect.getInstance(playlistSelectEl);
-                if (selectInstance) {
-                    selectInstance.destroy();
-                }
-                M.FormSelect.init(playlistSelectEl);
+                        const selectInstance = M.FormSelect.getInstance(playlistSelectEl);
+                        if (selectInstance) {
+                            selectInstance.destroy();
+                        }
+                        M.FormSelect.init(playlistSelectEl);
 
-                renderSettingsPlaylists();
+                        renderSettingsPlaylists();
+                    })
+                    .catch(() => {
+                        M.toast({html: 'Не удалось сохранить новый плейлист'});
+                    });
             }
 
             function applyDisplaySettings() {

@@ -13,10 +13,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -72,9 +69,7 @@ public class ApiPlaylistController
         playlist.setName(createPlaylist.getName());
         // TODO привязка к пользователю
 
-        playlistRepository.save(playlist);
-
-        return ResponseEntity.ok(transformPlaylistToDto(playlist));
+        return ResponseEntity.ok(transformPlaylistToDto(playlistRepository.save(playlist)));
     }
 
     /**
@@ -103,6 +98,21 @@ public class ApiPlaylistController
         playlistTrackRepository.save(playlistTrack);
 
         return ResponseEntity.ok(transformPlaylistTrackToDto(playlistTrack));
+    }
+
+    @PatchMapping("/api/playlists/{playlistId}")
+    public ResponseEntity<?> updatePlaylist(@PathVariable UUID playlistId, @RequestBody CreatePlaylist createPlaylist)
+    {
+        var playlist = playlistRepository.findById(playlistId);
+
+        if (playlist.isEmpty()) {
+            return ResponseEntity.badRequest().body("Unknown playlist.");
+        }
+
+        var model = playlist.get();
+        model.setName(createPlaylist.getName());
+
+        return ResponseEntity.ok(transformPlaylistToDto(playlistRepository.save(model)));
     }
 
     /**
@@ -140,9 +150,9 @@ public class ApiPlaylistController
 
     @AllArgsConstructor
     @NoArgsConstructor
-    private static class CreatePlaylist
+    @Getter
+    protected static class CreatePlaylist
     {
-        @Getter
         private String name;
     }
 
