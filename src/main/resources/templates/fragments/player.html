@@ -975,7 +975,7 @@
                 e.preventDefault();
             });
 
-            btnVolume.addEventListener('click', e => {
+            btnVolume.addEventListener('click', function(e) {
                 muted = !muted;
                 this.querySelector('i').textContent = muted ? 'volume_off' : 'volume_up';
 
