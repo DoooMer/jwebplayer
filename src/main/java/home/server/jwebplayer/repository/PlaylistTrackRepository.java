@@ -13,4 +13,6 @@ public interface PlaylistTrackRepository extends CrudRepository<PlaylistTrack, U
     List<PlaylistTrack> findAllByPlaylistId(UUID playlistId);
 
     List<PlaylistTrack> findAllByTrackId(String trackId);
+
+    void deleteAllByPlaylistId(UUID playlistId);
 }

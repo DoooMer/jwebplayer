@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import javax.transaction.Transactional;
 import java.util.List;
 import java.util.UUID;
 
@@ -113,6 +114,22 @@ public class ApiPlaylistController
         model.setName(createPlaylist.getName());
 
         return ResponseEntity.ok(transformPlaylistToDto(playlistRepository.save(model)));
+    }
+
+    @DeleteMapping("/api/playlists/{playlistId}")
+    @Transactional
+    public ResponseEntity<?> deletePlaylist(@PathVariable UUID playlistId)
+    {
+        var playlist = playlistRepository.findById(playlistId);
+
+        if (playlist.isEmpty()) {
+            return ResponseEntity.badRequest().body("Unknown playlist.");
+        }
+
+        playlistTrackRepository.deleteAllByPlaylistId(playlistId);
+        playlistRepository.deleteById(playlistId);
+
+        return ResponseEntity.noContent().build();
     }
 
     /**

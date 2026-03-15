@@ -435,7 +435,7 @@
             background: transparent;
             border-bottom: 1px solid rgba(139, 148, 158, 0.2);
             cursor: pointer;
-            padding: 0.75rem 0.25rem;
+            padding: 0.75rem 0.25rem 0.75rem 0.75rem;
         }
 
         .add-playlists-list .collection-item:last-child {
@@ -649,6 +649,7 @@
 
                 Array.from(playlistSelectEl.options).forEach(option => {
                     if (!option.value) return; // пропускаем плейсхолдер
+                    if (currentPlaylist && option.value === currentPlaylist) return;
                     const id = option.value;
                     const name = option.textContent;
 
@@ -661,10 +662,6 @@
                         if (!pendingTrackToAdd) {
                             addToModalInstance.close();
                             return;
-                        }
-
-                        if (!playlists[id]) {
-                            playlists[id] = [];
                         }
 
                         addTrackToPlaylist(pendingTrackToAdd.id, id);
@@ -822,30 +819,36 @@
                         e.stopPropagation();
                         const id = btn.dataset.id;
 
-                        // удаляем из данных
-                        delete playlists[id];
+                        fetch(`/api/playlists/${id}`, {
+                            method: 'DELETE'
+                        })
+                            .then((res) => {
+                                if (!res.ok) throw new Error('Failed to delete playlist');
 
-                        // удаляем option из select
-                        const option = playlistSelectEl.querySelector(`option[value="${id}"]`);
-                        if (option) {
-                            option.remove();
-                        }
+                                // удаляем из данных
+                                delete playlists[id];
 
-                        const selectInstance = M.FormSelect.getInstance(playlistSelectEl);
-                        if (selectInstance) {
-                            selectInstance.destroy();
-                        }
-                        M.FormSelect.init(playlistSelectEl);
+                                // удаляем option из select
+                                const option = playlistSelectEl.querySelector(`option[value="${id}"]`);
+                                if (option) {
+                                    option.remove();
+                                }
 
-                        // если удаляем текущий плейлист
-                        if (currentPlaylist === id) {
-                            currentPlaylist = null;
-                            currentTrackIndex = -1;
-                            trackTitleEl.textContent = 'Выберите трек';
-                            trackTitleEl.classList.add('empty');
-                            btnPlay.querySelector('i').textContent = 'play_arrow';
-                            isPlaying = false;
-                            tracksListEl.innerHTML = `
+                                const selectInstance = M.FormSelect.getInstance(playlistSelectEl);
+                                if (selectInstance) {
+                                    selectInstance.destroy();
+                                }
+                                M.FormSelect.init(playlistSelectEl);
+
+                                // если удаляем текущий плейлист
+                                if (currentPlaylist === id) {
+                                    currentPlaylist = null;
+                                    currentTrackIndex = -1;
+                                    trackTitleEl.textContent = 'Выберите трек';
+                                    trackTitleEl.classList.add('empty');
+                                    btnPlay.querySelector('i').textContent = 'play_arrow';
+                                    isPlaying = false;
+                                    tracksListEl.innerHTML = `
                                 <li class="collection-item">
                                     <span class="track-number">—</span>
                                     <div class="track-main">
@@ -853,9 +856,15 @@
                                     </div>
                                 </li>
                             `;
-                        }
+                                }
 
-                        renderSettingsPlaylists();
+                                renderSettingsPlaylists();
+
+                                M.toast({html: 'Плейлист удален'});
+                            })
+                            .catch(() => {
+                                M.toast({html: 'Ошибка удаления плейлиста'});
+                            });
                     });
                 });
             }
