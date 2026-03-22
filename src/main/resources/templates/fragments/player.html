@@ -236,6 +236,25 @@
             font-size: 1.25rem;
         }
 
+        .btn-del {
+            background: transparent !important;
+            color: var(--text-secondary) !important;
+            border: none;
+            padding: 0.5rem;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+
+        .btn-del:hover {
+            color: var(--accent) !important;
+            background: rgba(88, 166, 255, 0.15) !important;
+        }
+
+        .btn-del i {
+            font-size: 1.25rem;
+        }
+
         /* Плавающая кнопка настроек */
         .fab-settings {
             position: fixed;
@@ -580,7 +599,7 @@
                     })
                     .then((data) => {
                         const tracks = (data && Array.isArray(data.playlistTracks)) ? data.playlistTracks : [];
-                        playlists[playlistId] = tracks;
+                        playlists[playlistId] = Array.from(tracks);
                         currentTrackIndex = -1;
                         isPlaying = false;
                         btnPlay.querySelector('i').textContent = 'play_arrow';
@@ -596,7 +615,7 @@
             }
 
             function renderTracks(playlistId) {
-                const tracks = playlists[playlistId] || [];
+                const tracks = Array.from(playlists[playlistId] || []);
 
                 if (!tracks || tracks.length === 0) {
                     tracksListEl.innerHTML = `
@@ -618,6 +637,7 @@
                             <span class="track-dir">${track.directory || ''}</span>
                         </div>
                         <button class="btn-add" title="Добавить в плейлист" data-index="${i}"><i class="material-icons">playlist_add</i></button>
+                        <button class="btn-del" title="Удалить из плейлиста" data-index="${i}"><i class="material-icons">playlist_remove</i></button>
                     </li>
                 `).join('');
 
@@ -640,6 +660,39 @@
                         pendingTrackToAdd = { ...track };
                         renderAddToPlaylistsList();
                         addToModalInstance.open();
+                    });
+                });
+
+                // Обработчики кнопки удаления из плейлиста
+                tracksListEl.querySelectorAll('.btn-del[data-index]').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const index = parseInt(btn.dataset.index);
+                        const track = tracks[index];
+                        if (!track) return;
+
+                        fetch(`/api/playlists/${currentPlaylist}/tracks/${track.id}`, {
+                            method: 'DELETE'
+                        })
+                            .then((res) => {
+                                if (!res.ok) throw new Error('Failed to delete track from playlist.');
+
+                                // удаление трека из плейлиста
+                                if (index === currentTrackIndex) {
+                                    isPlaying ? btnPlay.click() : null;
+                                    currentTrackIndex -= 1;
+                                    trackTitleEl.textContent = 'Выберите трек';
+                                    trackTitleEl.classList.add('empty');
+                                    btnPlay.querySelector('i').textContent = 'play';
+                                    timeline.style.width = '0';
+                                }
+
+                                playlists[currentPlaylist].splice(index, 1);
+                                renderTracks(currentPlaylist);
+                            })
+                            .catch(() => {
+                                M.toast({html: 'Ошибка удаления трека из плейлиста'});
+                            });
                     });
                 });
             }
@@ -951,13 +1004,7 @@
                 btnVolume.title = 'Громкость ' + parseFloat(String(volume * 100)).toFixed(0) + '%';
             }
 
-            playlistSelectEl.addEventListener('change', function() {
-                currentPlaylist = this.value;
-                currentTrackIndex = -1;
-                loadTracksForPlaylist(currentPlaylist);
-            });
-
-            btnPlay.addEventListener('click', function() {
+            function play() {
                 if (!currentPlaylist) return;
                 const tracks = playlists[currentPlaylist];
                 if (tracks.length === 0) return;
@@ -974,7 +1021,15 @@
                 audio && audio.paused
                     ? audio.play()
                     : audio.pause();
+            }
+
+            playlistSelectEl.addEventListener('change', function() {
+                currentPlaylist = this.value;
+                currentTrackIndex = -1;
+                loadTracksForPlaylist(currentPlaylist);
             });
+
+            btnPlay.addEventListener('click', play);
 
             btnPrev.addEventListener('click', function() {
                 if (!currentPlaylist) return;
