@@ -12,17 +12,15 @@ import java.util.UUID;
 @Table(name = "playlists")
 @AllArgsConstructor
 @NoArgsConstructor
+@Getter
+@Setter
 public class Playlist
 {
     @Id
     @GeneratedValue
-    @Getter
-    @Setter
     private UUID id;
 
     @Column
-    @Getter
-    @Setter
     private String name;
 
     @PrePersist

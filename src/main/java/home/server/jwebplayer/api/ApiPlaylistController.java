@@ -11,13 +11,12 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.*;
 
+import javax.transaction.Transactional;
 import java.util.List;
 import java.util.UUID;
 
@@ -66,31 +65,38 @@ public class ApiPlaylistController
      * Добавление плейлиста.
      */
     @PostMapping("/api/playlists")
-    public ResponseEntity<ApiPlaylistDTO> create(@RequestBody CreatePlaylist createPlaylist)
+    public ResponseEntity<?> create(@RequestBody PlaylistData playlistData)
     {
+        // default - зарезервированное название плейлиста по-умолчанию
+        if (playlistData.getName().equalsIgnoreCase("default")) {
+            return ResponseEntity.unprocessableEntity().body("Playlist's name 'default' is reserved. You cannot use it.");
+        }
+
         var playlist = new Playlist();
-        playlist.setName(createPlaylist.getName());
+        playlist.setName(playlistData.getName());
         // TODO привязка к пользователю
 
-        playlistRepository.save(playlist);
-
-        return ResponseEntity.ok(transformPlaylistToDto(playlist));
+        return ResponseEntity.ok(transformPlaylistToDto(playlistRepository.save(playlist)));
     }
 
     /**
      * Добавление трека в плейлист.
      */
     @PostMapping("/api/playlists/{playlistId}")
-    public ResponseEntity<?> addTrack(@PathVariable UUID playlistId, @RequestBody PlaylistAddTrack playlistAddTrack)
+    public ResponseEntity<?> addTrack(@PathVariable UUID playlistId, @RequestBody PlaylistTrackData playlistTrackData)
     {
         var playlist = playlistRepository.findById(playlistId);
 
         if (playlist.isEmpty()) {
             return ResponseEntity.badRequest().body("Unknown playlist.");
         }
+
+        if (playlist.get().getName().equalsIgnoreCase("default")) {
+            return ResponseEntity.unprocessableEntity().body("You cannot add track to default playlist.");
+        }
         // TODO проверка принадлежности плейлиста
 
-        var track = trackRepository.findById(playlistAddTrack.getTrackId().toString());
+        var track = trackRepository.findById(playlistTrackData.getTrackId().toString());
 
         if (track.isEmpty()) {
             return ResponseEntity.badRequest().body("Unknown track.");
@@ -103,6 +109,43 @@ public class ApiPlaylistController
         playlistTrackRepository.save(playlistTrack);
 
         return ResponseEntity.ok(transformPlaylistTrackToDto(playlistTrack));
+    }
+
+    /**
+     * Редактирование плейлиста.
+     */
+    @PatchMapping("/api/playlists/{playlistId}")
+    public ResponseEntity<?> updatePlaylist(@PathVariable UUID playlistId, @RequestBody PlaylistData playlistData)
+    {
+        var playlist = playlistRepository.findById(playlistId);
+
+        if (playlist.isEmpty()) {
+            return ResponseEntity.badRequest().body("Unknown playlist.");
+        }
+
+        var model = playlist.get();
+        model.setName(playlistData.getName());
+
+        return ResponseEntity.ok(transformPlaylistToDto(playlistRepository.save(model)));
+    }
+
+    /**
+     * Удаление плейлиста.
+     */
+    @DeleteMapping("/api/playlists/{playlistId}")
+    @Transactional
+    public ResponseEntity<?> deletePlaylist(@PathVariable UUID playlistId)
+    {
+        var playlist = playlistRepository.findById(playlistId);
+
+        if (playlist.isEmpty()) {
+            return ResponseEntity.badRequest().body("Unknown playlist.");
+        }
+
+        playlistTrackRepository.deleteAllByPlaylistId(playlistId);
+        playlistRepository.deleteById(playlistId);
+
+        return ResponseEntity.noContent().build();
     }
 
     /**
@@ -122,9 +165,32 @@ public class ApiPlaylistController
     }
 
     /**
+     * Удаленине трека из плейлиста.
+     */
+    @DeleteMapping("/api/playlists/{playlistId}/tracks/{trackId}")
+    public ResponseEntity<?> deleteTrack(@PathVariable UUID playlistId, @PathVariable String trackId)
+    {
+        var trackInPlaylist = playlistTrackRepository.findFirstByPlaylistIdAndTrackId(playlistId, trackId);
+
+        if (trackInPlaylist.isEmpty()) {
+            return ResponseEntity.badRequest().body(new ApiError("There is no track or playlist."));
+        }
+
+        // Запрещается удалять треки из плейлиста по-умолчанию
+        if (trackInPlaylist.get().getPlaylist().getName().equalsIgnoreCase("default")) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ApiError("You cannot delete track from default playlist."));
+        }
+
+        playlistTrackRepository.deleteById(trackInPlaylist.get().getId());
+
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
      * Выбор активного плейлиста для пользователя.
      */
     @PostMapping("/api/playlists/{playlistId}/select")
+    @Deprecated
     public ResponseEntity<?> select(@PathVariable UUID playlistId)
     {
         UUID userId = guestService.currentUserId();
@@ -140,17 +206,17 @@ public class ApiPlaylistController
 
     @AllArgsConstructor
     @NoArgsConstructor
-    private static class CreatePlaylist
+    @Getter
+    public static class PlaylistData
     {
-        @Getter
         private String name;
     }
 
     @AllArgsConstructor
     @NoArgsConstructor
-    private static class PlaylistAddTrack
+    @Getter
+    public static class PlaylistTrackData
     {
-        @Getter
         private UUID trackId;
     }
 
@@ -164,12 +230,11 @@ public class ApiPlaylistController
         return new ApiPlaylistTrackDTO(playlistTrack);
     }
 
-    private static class ListDTO
+    @Getter
+    public static class ListDTO
     {
-        @Getter
         private final List<ApiPlaylistDTO> playlists;
 
-        @Getter
         private final int total;
 
         private ListDTO(List<ApiPlaylistDTO> playlists)
@@ -180,7 +245,7 @@ public class ApiPlaylistController
     }
 
     @AllArgsConstructor
-    private static class ApiPlaylistDTO
+    public static class ApiPlaylistDTO
     {
         private Playlist playlist;
 
@@ -200,11 +265,6 @@ public class ApiPlaylistController
     {
         private PlaylistTrack playlistTrack;
 
-        public UUID getPlaylistId()
-        {
-            return playlistTrack.getPlaylist().getId();
-        }
-
         public String getId()
         {
             return playlistTrack.getTrack().getId();
@@ -215,18 +275,22 @@ public class ApiPlaylistController
             return playlistTrack.getTrack().getName();
         }
 
+        public String getDirectory()
+        {
+            return playlistTrack.getTrack().getDirectory();
+        }
+
         public String getDownloadUrl()
         {
             return "/download/" + playlistTrack.getTrack().getId();
         }
     }
 
+    @Getter
     private static class ApiListTracksDTO
     {
-        @Getter
         private final List<ApiPlaylistTrackDTO> playlistTracks;
 
-        @Getter
         private final int total;
 
         private ApiListTracksDTO(List<ApiPlaylistTrackDTO> playlistTracks)
@@ -234,5 +298,12 @@ public class ApiPlaylistController
             this.playlistTracks = playlistTracks;
             total = playlistTracks.size();
         }
+    }
+
+    @AllArgsConstructor
+    @Getter
+    public static class ApiError
+    {
+        private String message;
     }
 }

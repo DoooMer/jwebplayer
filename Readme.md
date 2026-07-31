@@ -1,41 +1,38 @@
-## Roadmap
+[Docker image](https://hub.docker.com/r/doomer/jwebplayer)
 
-`x` - done
+Just audio player for your music collection worked in browser.
 
-`*` - in progress
+Do not recommend to use it in public server.
 
-`_` - backlog
 
-[x] filtering playlist by search text
+## How it works
 
-[x] save settings (on front - local storage)
+Application scans directory with mp3's you chosen. Write file's data, such as filename and directory path, in local database. 
+Then makes default playlist with name 'default'. That is it.
 
-[x] remote control (page with controls for player in another tab)
+Application watches changes in directory and add a new files to default playlist.
 
-[x] scrollable playlist
 
-[x] background indexing folder, page for waiting
+## Get started
 
-[x] watch for changes, re-indexing in background (add new files + drop if not found)
+You have to set up some properties:
+- `USER_DEFAULT_PASSWORD` (ENV) should be just some stupid string, like 'password' (especially if app runs in local network)
+etc.
 
-[x] random meme
 
-[_] JS dependencies by npm (add npm install before build jar)
+Write them somewhere.
 
-[_] catch FileNotFoundException in download (on back - drop file from index, on front - skip and try to play next)
 
-[_] user session (separate cursors)
+Pull image from docker hub
+```bash
+docker pull doomer/jwebplayer
+```
 
-[_] favorites (front - toggle show only favorites) or personal playlists
 
-[_] push to front when tracks was updated
+Then run container like this
+```bash
+docker run -p 8080:8080 -e USER_DEFAULT_PASSWORD=password doomer/jwebplayer
+```
 
-[_] load tracks from PlaylistService by page (50-100 per page)
 
-[_] prev track
-
-[_] meet mode (volume - 0.071, do not disturb - on, repeat - off)
-
-[_] remember volume level
-
-[_] setting minimal/preferred volume (save to localstorage, toggle by button on/off) - fast change volume
+So, now you be able to open `http://localhost:8080` and listen to the music.

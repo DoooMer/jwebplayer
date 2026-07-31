@@ -1,8 +1,12 @@
 <!DOCTYPE html>
 <html lang="ru" xmlns:th="https://www.thymeleaf.org">
 <head>
+    <title></title>
     <link th:fragment="css" rel="stylesheet" href="/materialize/css/materialize.min.css">
-    <link th:fragment="font" href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <th:block th:fragment="font">
+        <link href="/icon.css" rel="stylesheet">
+        <link href="/font.css" rel="stylesheet">
+    </th:block>
 </head>
 <body>
     <script th:fragment="js" src="/materialize/js/materialize.min.js"></script>

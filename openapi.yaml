@@ -1,0 +1,120 @@
+openapi: 3.1.0
+info:
+  title: JWebPlayer API
+  description: JWebPlayer API
+  version: 2.0.0-beta
+paths:
+  /api/v2/playlists:
+    get:
+      description: Список плейлистов
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Playlist'
+    post:
+      description: Добавить плейлист
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+              required: true
+      responses:
+        201:
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Playlist'
+  /api/v2/playlist/{playlistId}:
+    put:
+      description: Редактирование плейлиста
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Playlist'
+  /api/v2/playlists/{playlistId}/tracks:
+    get:
+      description: Список треков в плейлисте
+      parameters:
+        - in: path
+          name: playlistId
+          schema:
+            type: string
+            format: uuid
+          description: ИД плейлиста
+          required: true
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Track'
+  /api/v2/tracks/{trackId}/content:
+    get:
+      description: Трек (содержимое)
+      parameters:
+        - in: path
+          name: trackId
+          schema:
+            type: string
+            format: uuid
+          description: ИД трека
+          required: true
+      responses:
+        200:
+          description: OK
+          content:
+            binary/octet-stream
+components:
+  schemas:
+    Playlist:
+      type: object
+      description: Плейлист
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: ИД
+        name:
+          type: string
+          description: Название
+      required:
+        - id
+        - name
+    Track:
+      type: object
+      description: Трек
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: ИД
+        name:
+          type: string
+          description: Название
+        directory:
+          type: string
+          description: Папка размещения
+        downloadUrl:
+          type: string
+          description: Ссылка на ресурс (содержимое)
+      required:
+        - id
+        - name
+        - directory
+        - downloadUrl
