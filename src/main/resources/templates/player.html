@@ -66,7 +66,11 @@
             <div class="tracks-list">
                 <div class="search-row">
                     <i class="material-icons">search</i>
-                    <input type="text" id="trackSearch" placeholder="Поиск по названию трека">
+                    <input
+                        type="text"
+                        id="trackSearch"
+                        placeholder="Поиск по названию трека"
+                    />
                 </div>
                 <ul class="collection" id="tracksList">
                     <li class="collection-item">
@@ -94,6 +98,14 @@
         >
             <i class="material-icons">volume_up</i>
         </button>
+
+        <div
+            class="app-version"
+            th:if="${appVersion}"
+            th:text="'v' + ${appVersion}"
+        >
+            dev
+        </div>
 
         <!-- Модальное окно настроек -->
         <div id="modalSettings" class="modal">

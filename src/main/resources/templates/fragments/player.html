@@ -326,6 +326,19 @@
                 background: var(--accent-hover) !important;
             }
 
+            /* Версия приложения */
+            .app-version {
+                position: fixed;
+                right: 52px;
+                bottom: 8px;
+                z-index: 100;
+                color: var(--text-secondary);
+                font-size: 0.75rem;
+                user-select: none;
+                pointer-events: none;
+                transform: translateX(50%);
+            }
+
             /* Модальные окна (общий стиль, как на главном экране) */
             .modal {
                 background: transparent;
@@ -536,9 +549,9 @@
                 // Данные плейлистов
                 let playlists = {};
 
-const trackTitleEl = document.getElementById("trackTitle");
-            const tracksListEl = document.getElementById("tracksList");
-            const trackSearchEl = document.getElementById("trackSearch");
+                const trackTitleEl = document.getElementById("trackTitle");
+                const tracksListEl = document.getElementById("tracksList");
+                const trackSearchEl = document.getElementById("trackSearch");
                 const playlistSelectEl =
                     document.getElementById("playlistSelect");
                 const playlistSectionEl =
@@ -577,10 +590,10 @@ const trackTitleEl = document.getElementById("trackTitle");
                 let currentTrackIndex = -1;
                 let isPlaying = false;
                 let showMainLists = true; // настройка: показ плейлиста
-let pendingTrackToAdd = null;
-            let audio = null; // воспроизведение: плеер
-            let volume = 1; // воспроизведение: громкость
-            let trackSearchQuery = ""; // поиск трека по названию
+                let pendingTrackToAdd = null;
+                let audio = null; // воспроизведение: плеер
+                let volume = 1; // воспроизведение: громкость
+                let trackSearchQuery = ""; // поиск трека по названию
                 let muted = false; // воспроизведение: выключение звука
                 let autoPlayNext = true; // настройка: воспроизводить следующий
                 let repeatTrack = false; // настройка: повтор трека
@@ -697,13 +710,13 @@ let pendingTrackToAdd = null;
                     const query = trackSearchQuery.trim().toLowerCase();
                     const visible = query
                         ? tracks
-                              .map((track, index) => ({track, index}))
-                              .filter(({track}) =>
+                              .map((track, index) => ({ track, index }))
+                              .filter(({ track }) =>
                                   (track.name || "")
                                       .toLowerCase()
                                       .includes(query),
                               )
-                        : tracks.map((track, index) => ({track, index}));
+                        : tracks.map((track, index) => ({ track, index }));
 
                     if (!tracks || tracks.length === 0) {
                         tracksListEl.innerHTML = `
@@ -731,7 +744,7 @@ let pendingTrackToAdd = null;
 
                     tracksListEl.innerHTML = visible
                         .map(
-                            ({track, index}) => `
+                            ({ track, index }) => `
                     <li class="collection-item ${index === currentTrackIndex ? "playing" : ""}" data-index="${index}">
                         <span class="track-number">${index + 1}</span>
                         <div class="track-main">
