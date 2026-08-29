@@ -176,6 +176,36 @@
                 box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
             }
 
+            .tracks-list .search-row {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                padding: 1rem 1.25rem 0;
+            }
+
+            .tracks-list .search-row i {
+                color: var(--text-secondary);
+            }
+
+            .tracks-list .search-row input[type="text"] {
+                flex: 1;
+                margin: 0;
+                padding: 0.5rem 0.75rem;
+                color: var(--text-primary);
+                border: 1px solid var(--text-secondary);
+                border-radius: 8px;
+                box-sizing: border-box;
+            }
+
+            .tracks-list .search-row input[type="text"]:focus {
+                border: 1px solid var(--accent);
+                box-shadow: none !important;
+            }
+
+            .tracks-list .search-row input[type="text"]::placeholder {
+                color: var(--text-secondary);
+            }
+
             .tracks-list .collection {
                 border: none;
             }
@@ -506,8 +536,9 @@
                 // Данные плейлистов
                 let playlists = {};
 
-                const trackTitleEl = document.getElementById("trackTitle");
-                const tracksListEl = document.getElementById("tracksList");
+const trackTitleEl = document.getElementById("trackTitle");
+            const tracksListEl = document.getElementById("tracksList");
+            const trackSearchEl = document.getElementById("trackSearch");
                 const playlistSelectEl =
                     document.getElementById("playlistSelect");
                 const playlistSectionEl =
@@ -546,9 +577,10 @@
                 let currentTrackIndex = -1;
                 let isPlaying = false;
                 let showMainLists = true; // настройка: показ плейлиста
-                let pendingTrackToAdd = null;
-                let audio = null; // воспроизведение: плеер
-                let volume = 1; // воспроизведение: громкость
+let pendingTrackToAdd = null;
+            let audio = null; // воспроизведение: плеер
+            let volume = 1; // воспроизведение: громкость
+            let trackSearchQuery = ""; // поиск трека по названию
                 let muted = false; // воспроизведение: выключение звука
                 let autoPlayNext = true; // настройка: воспроизводить следующий
                 let repeatTrack = false; // настройка: повтор трека
@@ -662,6 +694,16 @@
 
                 function renderTracks(playlistId) {
                     const tracks = Array.from(playlists[playlistId] || []);
+                    const query = trackSearchQuery.trim().toLowerCase();
+                    const visible = query
+                        ? tracks
+                              .map((track, index) => ({track, index}))
+                              .filter(({track}) =>
+                                  (track.name || "")
+                                      .toLowerCase()
+                                      .includes(query),
+                              )
+                        : tracks.map((track, index) => ({track, index}));
 
                     if (!tracks || tracks.length === 0) {
                         tracksListEl.innerHTML = `
@@ -675,17 +717,29 @@
                         return;
                     }
 
-                    tracksListEl.innerHTML = tracks
+                    if (visible.length === 0) {
+                        tracksListEl.innerHTML = `
+                        <li class="collection-item">
+                            <span class="track-number">—</span>
+                            <div class="track-main">
+                                <span class="track-name">Ничего не найдено</span>
+                            </div>
+                        </li>
+                    `;
+                        return;
+                    }
+
+                    tracksListEl.innerHTML = visible
                         .map(
-                            (track, i) => `
-                    <li class="collection-item ${i === currentTrackIndex ? "playing" : ""}" data-index="${i}">
-                        <span class="track-number">${i + 1}</span>
+                            ({track, index}) => `
+                    <li class="collection-item ${index === currentTrackIndex ? "playing" : ""}" data-index="${index}">
+                        <span class="track-number">${index + 1}</span>
                         <div class="track-main">
                             <span class="track-name">${track.name}</span>
                             <span class="track-dir">${track.directory || ""}</span>
                         </div>
-                        <button class="btn-add" title="Добавить в плейлист" data-index="${i}"><i class="material-icons">playlist_add</i></button>
-                        <button class="btn-del" title="Удалить из плейлиста" data-index="${i}"><i class="material-icons">playlist_remove</i></button>
+                        <button class="btn-add" title="Добавить в плейлист" data-index="${index}"><i class="material-icons">playlist_add</i></button>
+                        <button class="btn-del" title="Удалить из плейлиста" data-index="${index}"><i class="material-icons">playlist_remove</i></button>
                     </li>
                 `,
                         )
@@ -1158,6 +1212,13 @@
                     currentPlaylist = this.value;
                     currentTrackIndex = -1;
                     loadTracksForPlaylist(currentPlaylist);
+                });
+
+                trackSearchEl.addEventListener("input", function () {
+                    trackSearchQuery = this.value;
+                    if (currentPlaylist) {
+                        renderTracks(currentPlaylist);
+                    }
                 });
 
                 btnPlay.addEventListener("click", play);
