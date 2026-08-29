@@ -25,6 +25,16 @@
                 padding: 2rem 1rem;
             }
 
+            .sticky-header {
+                position: sticky;
+                top: 0;
+                z-index: 100;
+                margin: 0 -1rem;
+                padding: 0.5rem 1rem;
+                background: var(--bg-dark);
+                box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
+            }
+
             input[type="text"]:focus:not([readonly]),
             input[type="number"]:focus:not([readonly]) {
                 border-bottom: 1px solid var(--accent) !important;

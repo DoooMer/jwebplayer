@@ -12,50 +12,52 @@
     <body>
         <div class="player-container">
             <!-- Управление воспроизведением -->
-            <div class="player-controls">
-                <div class="track-title empty" id="trackTitle">
-                    Выберите трек
+            <div class="sticky-header">
+                <div class="player-controls">
+                    <div class="track-title empty" id="trackTitle">
+                        Выберите трек
+                    </div>
+                    <div class="controls-row">
+                        <button
+                            class="btn-control"
+                            id="btnPrev"
+                            title="Предыдущий трек"
+                        >
+                            <i class="material-icons">skip_previous</i>
+                        </button>
+                        <button
+                            class="btn-control play-pause"
+                            id="btnPlay"
+                            title="Воспроизвести"
+                        >
+                            <i class="material-icons">play_arrow</i>
+                        </button>
+                        <button
+                            class="btn-control"
+                            id="btnNext"
+                            title="Следующий трек"
+                        >
+                            <i class="material-icons">skip_next</i>
+                        </button>
+                    </div>
+                    <div class="progress track-timeline">
+                        <div
+                            class="determinate"
+                            style="width: 0"
+                            id="timeline"
+                        ></div>
+                    </div>
                 </div>
-                <div class="controls-row">
-                    <button
-                        class="btn-control"
-                        id="btnPrev"
-                        title="Предыдущий трек"
-                    >
-                        <i class="material-icons">skip_previous</i>
-                    </button>
-                    <button
-                        class="btn-control play-pause"
-                        id="btnPlay"
-                        title="Воспроизвести"
-                    >
-                        <i class="material-icons">play_arrow</i>
-                    </button>
-                    <button
-                        class="btn-control"
-                        id="btnNext"
-                        title="Следующий трек"
-                    >
-                        <i class="material-icons">skip_next</i>
-                    </button>
-                </div>
-                <div class="progress track-timeline">
-                    <div
-                        class="determinate"
-                        style="width: 0"
-                        id="timeline"
-                    ></div>
-                </div>
-            </div>
 
-            <!-- Выбор плейлиста -->
-            <div class="playlist-section">
-                <div class="playlist-row">
-                    <div class="input-field">
-                        <select id="playlistSelect">
-                            <option selected>-</option>
-                        </select>
-                        <label>Плейлист</label>
+                <!-- Выбор плейлиста -->
+                <div class="playlist-section">
+                    <div class="playlist-row">
+                        <div class="input-field">
+                            <select id="playlistSelect">
+                                <option selected>-</option>
+                            </select>
+                            <label>Плейлист</label>
+                        </div>
                     </div>
                 </div>
             </div>
